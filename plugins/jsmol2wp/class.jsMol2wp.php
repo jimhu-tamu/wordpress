@@ -24,7 +24,7 @@ class jsMol2wp{
 	}
 	
 	
-	function makeViewer($pdb, $caption, $commands){
+	function makeViewer($pdb, $caption, $commands, $atts){
 		# variables substitution to handle multiple viewers on the same 
 		# post/page
 		$applet = "jmolApplet".$this->instance;
@@ -51,11 +51,11 @@ class jsMol2wp{
 		$commands = str_replace("\n",' ', strip_tags($commands));
 		$buttons = "";
 		if($commands != ''){
-			$commandsSet = explode('|', $commands);
+			$commandsSet = explode('|||', $commands);
 			foreach($commandsSet as $i => $command){
-				list($label, $script) = explode('=', $command."=");
+				list($label, $script) = explode('=', $command."=",2);
 				$label = trim($label);
-				$script = trim($script);
+				$script = trim($script,"\n=");
 				$buttons .= "jmolButton('$script','$label')\n";
 				if($i%4 == 2) $buttons .= "jmolBr()\n";
 			}

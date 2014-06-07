@@ -2,22 +2,68 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>JSmol2wp</title>
+	<title>About JSmol2wp</title>
 	<meta name="generator" content="BBEdit 10.5" />
 </head>
 <body>
-<h1>About</h1>
-<p>This Wordpress plugin is based on the <a href='http://wiki.jmol.org/index.php/Jmol_JavaScript_Object#JSmol'>JSmol molecular graphics viewer</a> from Bob Hanson, Zhou Renjian, and Takanori Nakane. Adaptation of JSmol to a Wordpress plugin was started by Jim Hu in June 2014.</p>
-<p>JSmol2wp is still in early development!!! Use at your own risk. For now, bug reports should be sent to jim.hu.biobio@gamail or to the JMol mailing list. Or report them to @jimhu via twitter.</p>
+<h1>About JSmol2wp</h1>
+<p>This Wordpress plugin is based on the <a href='http://wiki.jmol.org/index.php/Jmol_JavaScript_Object#JSmol'>JSmol molecular graphics viewer</a> from Bob Hanson, Zhou Renjian, and Takanori Nakane. Adaptation of JSmol to a Wordpress plugin was started by Jim Hu in June 2014. As of the current version, it only works for visualizing pdb files.</p>
+<p>JSmol2wp is still in early development!!! Use at your own risk. For now, bug reports and wishlist items can be put on the github issue tracker. And/or report them to @jimhu via twitter.</p>
 <h1>Installation</h1>
-Obtain the files from github.
+<p><b>Note: JSmol2wp alters the allowed MIME types for uploaded files to include chemical/pdb, whether or not you ever use the shortcode!!</b>.Installation is typical for Wordpress plugins not in the Wordpress ecosystem yet.</p>
+<ul>
+<li>Obtain the files from <a href='https://github.com/jimhu-tamu/wordpress/tree/master/plugins/jsmol2wp'>github</a>.</li>
+<li>Unpack and place in wp-content/plugins</li>
+<li>Activate jsmol2wp from the plugins dashboard panel</li>
+</ul>
 <h1>Usage</h1>
-
+<h2>basic usage with uploaded or remote files</h2>
+<p>This is a shortcode extension. Use [jsmol pdb='accession'] for a minimal version. jsmol2wp will look to see if a pdb file has been uploaded to your wordpress and it will use that file if it can find it. If it can't find a matching post for an uploaded attachement, it will try <a href='http://rcsb.org/pdb'>http://rcsb.org/pdb</a>. If it can't find a match there either, you'll get an error message in the JSmol window.</p>
+<h2>Additional parameters</h2>
+JSmol2wp can take two additional optional parameters:
+<ul>
+<li>caption: places a caption above the applet</li>
+<li>commands: information to create JSmol buttons that run your custom scripts on the applet</li>
+</ul>
+<h3>Commands syntax</h3>
+<p>Commands are triple pipe-delimited pairs with the format label=script, where label is the text you want on the button, and script is the Jmol script you want to run. JSmol2wp parses these, first by splitting on the ||| string and then on the = character.</p>
+<h4>Example</h4>
+This is what was used in the example post <a href='http://biochemistryweb.tamu.edu/biobiodev/testing-jsmol-post/'>here</a>. Note: that post may be ephemeral, as it's on a development site that often gets overwritten.
+<pre>
+[jsmol pdb='1LMB' caption='&amp;lambda; repressor headpiece' 
+commands='
+arm = select 1-6:3, 1-6:4; color yellow;|||
+helix-turn-helix = select 33-52:3, 33-52:4; color yellow; hide hoh;|||
+helix 5 = select *:3,*:4; spacefill off; cartoon; select 84,87; color yellow;
+spacefill on; select *;
+hide hoh; hide *:1,*:2;
+#moveto 2 0 1 0 0 0 0;
+zoomto (84:4) 300;|||
+DNA only =
+display all;
+hide protein;|||
+Protein only =
+hide all;
+display protein;|||
+DNA interaction =
+hide all;
+display 33-52:3, 33-52:4, 1-6:3, 1-6:4, *:1, *:2;
+cartoon only;
+select 40-52:4;
+spacefill 23%;
+wireframe 0.15;
+color cpk;
+zoomto (45:4) 300;
+']
+</pre>
+<p>This creates six custom buttons based on the text from the shortcode, and a reset button that tries to restore the original view. A lot of the suboptimal behavior of those buttons is from my lack of mastery of Jmol scripting</p>
 <h1>See also</h1>
 <ul>
 <li><a href='http://wiki.jmol.org'>Jmol and JSmol wiki</a></li>
-<li></li>
-<li></li>
+<li><a href='http://chemapps.stolaf.edu/jmol/docs/#zoom'>Jmol/JSmol scripting guide</a></li>
 </ul>
+<h1>License</h1>
+<p>JSmol2wp is available under the <a href='http://opensource.org/licenses/GPL-3.0'>GPL-3.0 license</a></p>
+<p>this document written by Jim Hu, June 6, 2014</p>
 </body>
 </html>
