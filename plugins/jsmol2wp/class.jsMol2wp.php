@@ -90,7 +90,7 @@ jmolButton("spacefill only;spacefill 23%;wireframe 0.15","ball&stick");');
 	}
 	
 	function getTemplate(){
-		$template = file_get_contents(plugins_url().'/jsmol2wp/jsmol_template.htm');
+		$template = file_get_contents(dirname(__FILE__).'/jsmol_template.htm');
 		$template = str_replace('http://chemapps.stolaf.edu/jmol/jsmol/',$this->path, $template );
 		$template = str_replace('__j2s__',$this->path."/j2s", $template );
 		$template = str_replace('__help__', "<a href='$this->path/help.htm'>About/Help</a>", $template );
