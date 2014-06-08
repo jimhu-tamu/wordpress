@@ -20,10 +20,12 @@
 <h2>basic usage with uploaded or remote files</h2>
 <p>This is a shortcode extension. Use [jsmol pdb='accession'] for a minimal version. jsmol2wp will look to see if a pdb file has been uploaded to your wordpress and it will use that file if it can find it. If it can't find a matching post for an uploaded attachement, it will try <a href='http://rcsb.org/pdb'>http://rcsb.org/pdb</a>. If it can't find a match there either, you'll get an error message in the JSmol window.</p>
 <h2>Additional parameters</h2>
-JSmol2wp can take two additional optional parameters:
+JSmol2wp can take additional optional parameters:
 <ul>
 <li>caption: places a caption above the applet</li>
 <li>commands: information to create JSmol buttons that run your custom scripts on the applet</li>
+<li>wrap: the number of buttons to put in each row. default = 4</li>
+<li>debug: show information about paths to required js files. default = false </li>
 </ul>
 <h3>Commands syntax</h3>
 <p>Commands are triple pipe-delimited pairs with the format label=script, where label is the text you want on the button, and script is the Jmol script you want to run. JSmol2wp parses these, first by splitting on the ||| string and then on the = character.</p>

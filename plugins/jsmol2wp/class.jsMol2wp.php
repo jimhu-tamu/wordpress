@@ -24,7 +24,7 @@ class jsMol2wp{
 	}
 	
 	
-	function makeViewer($pdb, $caption, $commands, $atts){
+	function makeViewer($pdb, $caption, $commands, $wrap, $debug){
 		# variables substitution to handle multiple viewers on the same 
 		# post/page
 		$applet = "jmolApplet".$this->instance;
@@ -34,7 +34,7 @@ class jsMol2wp{
 		$template = str_replace('jmolApplet0',$applet, $template );
 		$template = str_replace('1crn',$pdb, $template );
 		$template = str_replace('__caption__',$caption, $template );
-		$template = $this->makeScriptButtons($commands, $template);
+		$template = $this->makeScriptButtons($commands, $template, $wrap);
 		# look for a path to a local pdb file
 		if($this->fileURL != ''){
 			$template = str_replace(
@@ -44,12 +44,14 @@ class jsMol2wp{
 			$html = "Please specify the name of an uploaded .pdb file";
 		}
 		$html .= $template;
+		if($debug != 'false'){
+			$html .= $this->debug();
+		}
 		return $html;
 	}
 	
-	function makeScriptButtons($commands, $template){
+	function makeScriptButtons($commands, $template, $wrap = 4){
 		$commands = str_replace("\n",' ', strip_tags($commands));
-		$buttons = "";
 		if($commands != ''){
 			$commandsSet = explode('|||', $commands);
 			foreach($commandsSet as $i => $command){
@@ -57,13 +59,34 @@ class jsMol2wp{
 				$label = trim($label);
 				$script = trim($script,"\n=");
 				$buttons .= "jmolButton('$script','$label')\n";
-				if($i%4 == 2) $buttons .= "jmolBr()\n";
+				$j = $i+2;
+				if($j%$wrap == 0) $buttons .= "jmolBr()\n";
 			}
-			#if($i%4 == 1) $buttons = "jmolBr()\n";
 			$buttons .= "jmolButton('reset;select all; display not solvent;center;spacefill off;wireframe off;cartoons on;color structure;zoom 0;','reset')\n";	
 		}
+		$buttons .= $this->standardButtons($wrap);
 		$template = str_replace('__commands__',$buttons, $template );	
 		return $template;
+	}
+	/*
+	jmolBr() to make $wrap buttons/row
+	*/	
+	function standardButtons($wrap){
+		$str = "Jmol.setButtonCss(null,\"style='width:100px'\")\n";
+		$stdButtons = explode("\n", 
+'jmolButton("color cpk");
+jmolButton("color group");
+jmolButton("color amino");
+jmolButton("color structure");
+jmolButton("trace only");
+jmolButton("cartoon only");
+jmolButton("backbone only");
+jmolButton("spacefill only;spacefill 23%;wireframe 0.15","ball&stick");');
+		foreach($stdButtons as $i => $button){
+			if($i%$wrap == 0) $str .= "jmolBr();\n";
+			$str .= $button;
+		}
+		return $str;
 	}
 	
 	function getTemplate(){
@@ -72,5 +95,27 @@ class jsMol2wp{
 		$template = str_replace('__j2s__',$this->path."/j2s", $template );
 		$template = str_replace('__help__', "<a href='$this->path/help.htm'>About/Help</a>", $template );
 		return $template;
+	}
+	
+	function debug(){
+		$str = '<pre>';
+		# file path
+		$dirpath = dirname(__FILE__);
+		$str .= "Directory path:$dirpath\n";
+		$str .= "URL path:        $this->path\n";
+		$fileTests = array(
+		#	'foo.js' => "$this->path",
+			'JSmol.min.nojq.js' => "$this->path",
+			'package.js' => "$this->path/j2s/core/"
+		);
+		foreach($fileTests as $file => $path){
+			if(!file_get_contents("$path$file")){ 
+				$str .= "can't load $path$file\n";
+			}else{
+				$str .= "$file load OK\n";
+			}
+		}
+		$str .= "</pre>";
+		return $str;
 	}
 }

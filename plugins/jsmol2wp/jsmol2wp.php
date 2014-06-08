@@ -2,7 +2,7 @@
 /*
 Plugin Name: jsmol2wp 
 Description: Shorttag Plugin to view embed a jsmol viewer in a wordpress page [jsmol pdb='filename or accession' caption='caption' commands ='']. You can use a local file for the .pdb or pull the file from http://www.rcsb.org/pdb/files/XXXX.pdb
-Version: 0.3 alpha
+Version: 0.5 alpha
 Author: JimHu
 Author URI: http://ecoliwiki.net
 License: GPL2
@@ -24,10 +24,12 @@ function jsmol2wp_shortcode($atts) {
 	extract(shortcode_atts(array(
 	'pdb'       => '',
 	'caption'	=> '',
-	'commands'	=> array()
+	'commands'	=> '',
+	'wrap'      => '',
+	'debug'     => 'false'
 	), $atts));
 	$p = new jsMol2wp($pdb);
-	return $p->makeViewer($pdb, $caption, $commands, $atts);
+	return $p->makeViewer($pdb, $caption, $commands, $wrap, $debug);
 }
 
 add_shortcode( 'jsmol', 'jsmol2wp_shortcode');
