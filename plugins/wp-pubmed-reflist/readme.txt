@@ -57,6 +57,8 @@ n/a
 TODO:
 * input validation for the admin page
 * jquery datatables for settings view
+= 0.6 =
+* Changed recursive query syntax to use *key*
 = 0.5 =
 * Add fulltext and PMC links
 * Allow customization of text link to pubmed

@@ -103,7 +103,7 @@ class wpPubMedRefListSettings{
 	
 	function query_form_text() {
 		echo '<p>Edit Queries. Queries can be any valid pubmed query, '.
-		'or can be a catenation of query keys and query text using || (two pipes) as an OR separator</p>'.
+		'or you can use query keys as *key* and query text using || (two pipes) as an OR separator</p>'.
 		'<p>Extras is for citations of publications not listed in pubmed. Put formatted citations in this field, one citation per line</p>';
 	}
 	

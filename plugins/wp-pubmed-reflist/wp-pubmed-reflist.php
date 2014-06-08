@@ -5,7 +5,7 @@ Description: Shorttag Plugin to view an reference list from a pubmed query. use 
 where keys are associated with queries via a Settings page.
 example:
 [pmid-refs key="hu" limit=10]. 
-Version: 0.5
+Version: 0.6
 Author: JimHu
 Author URI: http://ecoliwiki.net
 License: GPL2
@@ -34,10 +34,11 @@ function wp_pubmed_reflist_shorttag($atts) {
 	extract(shortcode_atts(array(
 	'key'         => '',
 	'limit'         => '',
-	'linktext'	=> 'Search PubMed'
+	'linktext'	=> 'Search PubMed',
+	'showlink' => ''
 	), $atts));
 	$p = new wpPubMedRefList;
-	return $p->wp_pubmed_reflist($key,$limit, $linktext);
+	return $p->wp_pubmed_reflist($key,$limit, $linktext, $showlink);
 }
 
 add_shortcode( 'pmid-refs', 'wp_pubmed_reflist_shorttag');
