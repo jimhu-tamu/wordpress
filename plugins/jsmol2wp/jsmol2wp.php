@@ -25,7 +25,7 @@ function jsmol2wp_shortcode($atts) {
 	'pdb'       => '',
 	'caption'	=> '',
 	'commands'	=> '',
-	'wrap'      => '',
+	'wrap'      => '4',
 	'debug'     => 'false'
 	), $atts));
 	$p = new jsMol2wp($pdb);

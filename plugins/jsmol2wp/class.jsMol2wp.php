@@ -115,6 +115,8 @@ jmolButton("spacefill only;spacefill 23%;wireframe 0.15","ball&stick");');
 				$str .= "$file load OK\n";
 			}
 		}
+		$str .= 'file_get_contents: ';
+		$str .=  file_get_contents(__FILE__) ? 'Enabled' : 'Disabled';
 		$str .= "</pre>";
 		return $str;
 	}
