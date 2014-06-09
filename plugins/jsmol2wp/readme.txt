@@ -30,6 +30,10 @@ This plugin also benefited from using Jaime Prilusky's mediawiki extension for i
 http://proteopedia.org/support/JSmolExtension/
 
 == Development notes ==
+0.6 alpha
+- register script before enqueueing it.
+- added ability to add Jmol.script commands
+- added the ability to add jmolCommandInput
 0.5 alpha
 - added wrap and debug options
 0.4 alpha

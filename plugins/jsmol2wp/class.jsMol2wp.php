@@ -47,10 +47,15 @@ class jsMol2wp{
 		if($debug != 'false'){
 			$html .= $this->debug();
 		}
+		#$html .= "debug:$debug<br>wrap:$wrap";
 		return $html;
 	}
 	
 	function makeScriptButtons($commands, $template, $wrap = 4){
+		$buttons = '';
+		$jmolCommandInput = '';
+		$notButtons = 0;
+		$applet = "jmolApplet".$this->instance;
 		$commands = str_replace("\n",' ', strip_tags($commands));
 		if($commands != ''){
 			$commandsSet = explode('|||', $commands);
@@ -58,13 +63,26 @@ class jsMol2wp{
 				list($label, $script) = explode('=', $command."=",2);
 				$label = trim($label);
 				$script = trim($script,"\n=");
-				$buttons .= "jmolButton('$script','$label')\n";
-				$j = $i+2;
+				# if there is no script, assume that the line is raw Jmol script
+				switch($label){
+					case '':
+						#Jmol.script(myJmol,"spacefill off; wireframe 0.3;");
+						$buttons .= "Jmol.script($applet,\"$script\");\n";
+						$notButtons++;
+						break;
+					case 'jmolCommandInput':
+						$jmolCommandInput .= "Jmol.jmolCommandInput($applet);\n";
+						$notButtons++;
+						break;	
+					default:
+						$buttons .= "jmolButton('$script','$label')\n";
+				}				
+				$j = $i+2-$notButtons;
 				if($j%$wrap == 0) $buttons .= "jmolBr()\n";
 			}
 			$buttons .= "jmolButton('reset;select all; display not solvent;center;spacefill off;wireframe off;cartoons on;color structure;zoom 0;','reset')\n";	
 		}
-		$buttons .= $this->standardButtons($wrap);
+		$buttons .= $this->standardButtons($wrap).$jmolCommandInput;
 		$template = str_replace('__commands__',$buttons, $template );	
 		return $template;
 	}

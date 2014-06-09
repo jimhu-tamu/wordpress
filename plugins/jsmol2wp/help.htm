@@ -28,7 +28,14 @@ JSmol2wp can take additional optional parameters:
 <li>debug: show information about paths to required js files. default = false </li>
 </ul>
 <h3>Commands syntax</h3>
-<p>Commands are triple pipe-delimited pairs with the format label=script, where label is the text you want on the button, and script is the Jmol script you want to run. JSmol2wp parses these, first by splitting on the ||| string and then on the = character.</p>
+<p>Commands are triple pipe-delimited pairs with the format label=script, JSmol2wp parses these, first by splitting on the ||| string and then on the = character. There are three kinds of command pairs. </p>
+<ul>
+<li>JSmol2wp creates a button with the label. Clicking the button runs the script, unless:</li>
+<li>If the label is blank, JSmol2wp runs the script immediately. Use this to override the initialization on a per applet basis</li>
+<li>If the label is jmolCommandInput JSmol2wp appends a command input box at the bottom.</li>
+</ul>
+
+where label is the text you want on the button, and script is the Jmol script you want to run. 
 <h4>Example</h4>
 This is what was used in the example post <a href='http://biochemistryweb.tamu.edu/biobiodev/testing-jsmol-post/'>here</a>. Note: that post may be ephemeral, as it's on a development site that often gets overwritten.
 <pre>
@@ -66,6 +73,14 @@ zoomto (45:4) 300;
 </ul>
 <h1>License</h1>
 <p>JSmol2wp is available under the <a href='http://opensource.org/licenses/GPL-3.0'>GPL-3.0 license</a></p>
-<p>this document written by Jim Hu, June 6, 2014</p>
+<p>this document written by Jim Hu, June 6, 2014</p>!--
+<!--
+for lazy addition of list HTML
+<ul>
+<li></li>
+<li></li>
+</ul>
+-->
+
 </body>
 </html>

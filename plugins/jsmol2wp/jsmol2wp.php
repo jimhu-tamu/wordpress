@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: jsmol2wp 
-Description: Shorttag Plugin to view embed a jsmol viewer in a wordpress page [jsmol pdb='filename or accession' caption='caption' commands ='']. You can use a local file for the .pdb or pull the file from http://www.rcsb.org/pdb/files/XXXX.pdb
-Version: 0.5 alpha
+Description: Shorttag Plugin to view embed a jsmol viewer in a wordpress page [jsmol pdb='filename or accession' caption='caption' commands ='']. You can use a local file for the .pdb or pull the file from http://www.rcsb.org/pdb/files/XXXX.pdb. For more info see the help link under the applets.
+Version: 0.6 alpha
 Author: JimHu
 Author URI: http://ecoliwiki.net
 License: GPL2
@@ -42,10 +42,13 @@ function my_myme_types($mime_types){
 add_filter('upload_mimes', 'my_myme_types', 1, 1);
 
 function enqueue_jsmol_scripts() {
-	wp_enqueue_script(
-		'JSmol.min.nojq.js', 
+	wp_register_script(
+		'jsmol.min.nojq', 
 		plugins_url()."/jsmol2wp/JSmol.min.nojq.js",
-		array( 'jquery' )
+		array( 'jquery' ),
+		'14.1.7_2014.06.03'
 	);
+	wp_enqueue_script('jsmol.min.nojq');
+	
 }
 add_action( 'wp_enqueue_scripts', 'enqueue_jsmol_scripts' );
