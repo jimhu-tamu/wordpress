@@ -7,7 +7,6 @@ This plugin also benefited from using Jaime Prilusky's mediawiki extension for i
 http://proteopedia.org/support/JSmolExtension/
 
 == Development notes ==
-== Development notes ==
 0.7 beta
 - update jsmol libraries to 4.1.7_2014.06.09
 - add dependencies for jquery-ui-core and jquery-ui-menu fixes popup problem in some themes
