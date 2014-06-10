@@ -22,14 +22,22 @@ include_once(JSMOL2WP_PLUGIN_DIR."/class.jsMol2wp.php");
 //add shortcodes
 function jsmol2wp_shortcode($atts) {
 	extract(shortcode_atts(array(
+	'acc'       => '',
+	'type'      => 'pdb',
 	'pdb'       => '',
+	'fileurl'   => '',
 	'caption'	=> '',
 	'commands'	=> '',
 	'wrap'      => '4',
 	'debug'     => 'false'
 	), $atts));
-	$p = new jsMol2wp($pdb);
-	return $p->makeViewer($pdb, $caption, $commands, $wrap, $debug);
+	#backward compatibility
+	if($acc == '' && $pdb != ''){
+		$acc = $pdb;
+		$type = 'pdb';
+	}
+	$p = new jsMol2wp($acc, $type, $fileurl);
+	return $p->makeViewer($acc, $type, $caption, $commands, $wrap, $debug);
 }
 
 add_shortcode( 'jsmol', 'jsmol2wp_shortcode');
@@ -37,6 +45,7 @@ add_shortcode( 'jsmol', 'jsmol2wp_shortcode');
 function my_myme_types($mime_types){
     //Adjust the $mime_types, which is an associative array where the key is extension and value is mime type.
     $mime_types['pdb'] = 'chemical/pdb';
+    $mime_types['ccp4'] = 'text/ccp4';
     return $mime_types;
 }
 add_filter('upload_mimes', 'my_myme_types', 1, 1);
@@ -45,8 +54,8 @@ function enqueue_jsmol_scripts() {
 	wp_register_script(
 		'jsmol.min.nojq', 
 		plugins_url()."/jsmol2wp/JSmol.min.nojq.js",
-		array( 'jquery' ),
-		'14.1.7_2014.06.03'
+		array( 'jquery', 'jquery-ui-core','jquery-ui-menu'  ),
+		'14.1.7_2014.06.09'
 	);
 	wp_enqueue_script('jsmol.min.nojq');
 	

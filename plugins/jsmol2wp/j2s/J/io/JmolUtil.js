@@ -92,7 +92,7 @@ function (jmb, data) {
 data[0] = JU.Rdr.getZipRoot (data[0]);
 var shortName = J.io.JmolUtil.shortSceneFilename (data[0]);
 try {
-data[1] = JU.ZipTools.cacheZipContents (JU.Rdr.getPngZipStream (jmb.fm.getBufferedInputStreamOrErrorMessageFromName (data[0], null, false, false, null, false, true), true), shortName, jmb.pngjCache, false);
+data[1] = JU.Rdr.getJzt ().cacheZipContents (JU.Rdr.getPngZipStream (jmb.fm.getBufferedInputStreamOrErrorMessageFromName (data[0], null, false, false, null, false, true), true), shortName, jmb.pngjCache, false);
 } catch (e) {
 if (Clazz.exceptionOf (e, Exception)) {
 return false;
@@ -293,7 +293,7 @@ if (htCollections.containsKey (file)) vCollections.addLast (htCollections.get (f
  else if (JU.Logger.debugging) JU.Logger.debug ("manifested file " + file + " was not found in " + fileName);
 }
 }if (!doCombine) return vCollections;
-var result =  new J.adapter.smarter.AtomSetCollection ("Array", null, null, vCollections);
+var result = (vCollections.size () == 1 && Clazz.instanceOf (vCollections.get (0), J.adapter.smarter.AtomSetCollection) ? vCollections.get (0) :  new J.adapter.smarter.AtomSetCollection ("Array", null, null, vCollections));
 if (result.errorMessage != null) {
 if (ignoreErrors) return null;
 return result.errorMessage;
@@ -349,10 +349,13 @@ return ["SpartanSmol", sname, sname + "/output"];
 }return J.io.JmolUtil.getSpartanFileList (name, dirNums);
 }, "javajs.api.GenericZipTools,~S,~S");
 Clazz.overrideMethod (c$, "getImage", 
-function (vwr, fullPathName, echoName) {
+function (vwr, fullPathNameOrBytes, echoName) {
 var image = null;
 var info = null;
 var apiPlatform = vwr.apiPlatform;
+var createImage = false;
+var fullPathName = "" + fullPathNameOrBytes;
+if (Clazz.instanceOf (fullPathNameOrBytes, String)) {
 if (fullPathName.indexOf ("|") > 0) {
 var ret = vwr.fm.getFileAsBytes (fullPathName, null, true);
 if (!JU.PT.isAB (ret)) return "" + ret;
@@ -369,9 +372,14 @@ throw e;
 }
 }
 } else {
-image = apiPlatform.createImage (fullPathName);
-}{
-info = [echoName, fullPathName];
+createImage = true;
+}} else if (vwr.isJS) {
+image = fullPathNameOrBytes;
+} else {
+createImage = true;
+}if (createImage) image = apiPlatform.createImage (fullPathNameOrBytes);
+{
+info = [echoName, fullPathNameOrBytes];
 }try {
 if (!apiPlatform.waitForDisplay (info, image)) return null;
 {
@@ -384,7 +392,7 @@ throw e;
 }
 }
 return image;
-}, "JV.Viewer,~S,~S");
+}, "JV.Viewer,~O,~S");
 Clazz.defineStatics (c$,
 "DELPHI_BINARY_MAGIC_NUMBER", "\24\0\0\0");
 });

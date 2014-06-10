@@ -389,9 +389,8 @@ return;
 }
 }, "JU.BS");
 Clazz.defineMethod (c$, "deleteModels", 
-function (bsAtoms) {
+function (bsModels) {
 this.moleculeCount = 0;
-var bsModels = this.getModelBS (bsAtoms, false);
 this.includeAllRelatedFrames (bsModels);
 var nModelsDeleted = JU.BSUtil.cardinalityOf (bsModels);
 if (nModelsDeleted == 0) return null;

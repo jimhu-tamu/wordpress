@@ -1,7 +1,8 @@
 Clazz.declarePackage ("J.adapter.readers.cif");
-Clazz.load (["J.adapter.readers.cif.MSRdr"], "J.adapter.readers.cif.MSCifRdr", ["java.lang.Character", "$.Double", "JU.Matrix", "$.PT"], function () {
+Clazz.load (["J.adapter.readers.cif.MSRdr"], "J.adapter.readers.cif.MSCifRdr", ["java.lang.Character", "$.Double", "JU.M3", "$.Matrix", "$.PT"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.field = null;
+this.comSSMat = null;
 Clazz.instantialize (this, arguments);
 }, J.adapter.readers.cif, "MSCifRdr", J.adapter.readers.cif.MSRdr);
 Clazz.makeConstructor (c$, 
@@ -14,6 +15,13 @@ var cr = this.cr;
 if (cr.key.equals ("_jana_cell_commen_t_section_1")) {
 this.isCommensurate = true;
 this.commensurateSection1 = cr.parseIntStr (cr.data);
+}if (cr.key.startsWith ("_jana_cell_commen_supercell_matrix")) {
+this.isCommensurate = true;
+if (this.comSSMat == null) this.comSSMat = JU.M3.newM3 (null);
+var tokens = JU.PT.split (cr.key, "_");
+var r = cr.parseIntStr (tokens[tokens.length - 2]);
+var c = cr.parseIntStr (tokens[tokens.length - 1]);
+if (r > 0 && c > 0) this.comSSMat.setElement (r - 1, c - 1, cr.parseFloatStr (cr.data));
 }});
 Clazz.defineMethod (c$, "processLoopBlock", 
 function () {
@@ -21,6 +29,8 @@ var cr = this.cr;
 if (cr.key.equals ("_cell_subsystem_code")) {
 this.processSubsystemLoopBlock ();
 return 1;
+}if (cr.key.equals ("_jana_cell_twin_matrix_id")) {
+this.processTwinMatrixLoopBlock ();
 }if (!cr.key.startsWith ("_cell_wave") && !cr.key.contains ("fourier") && !cr.key.contains ("_special_func")) return 0;
 if (cr.asc.iSet < 0) cr.asc.newAtomSet ();
 cr.parseLoopParameters (J.adapter.readers.cif.MSCifRdr.modulationFields);
@@ -37,10 +47,11 @@ var fid = null;
 var n = cr.parser.getFieldCount ();
 for (var i = 0; i < n; ++i) {
 switch (tok = this.fieldProperty (cr, i)) {
+case 0:
+cr.haveCellWaveVector = true;
 case 40:
 case 41:
 case 42:
-case 0:
 case 4:
 pt[0] = pt[1] = pt[2] = 0;
 case 13:
@@ -189,25 +200,39 @@ cr.parseLoopParameters (null);
 while (cr.parser.getData ()) {
 this.fieldProperty (cr, 0);
 var id = this.field;
-this.addSubsystem (id, this.getSubSystemMatrix (cr, 1));
+this.addSubsystem (id, this.getSparseMatrix (cr, "_w_", 1, 3 + this.modDim));
 }
 });
-Clazz.defineMethod (c$, "getSubSystemMatrix", 
- function (cr, i) {
-var m =  new JU.Matrix (null, 3 + this.modDim, 3 + this.modDim);
+Clazz.defineMethod (c$, "processTwinMatrixLoopBlock", 
+ function () {
+var cr = this.cr;
+cr.parseLoopParameters (null);
+while (cr.parser.getData ()) {
+this.fieldProperty (cr, 0);
+var id = this.field;
+this.addTwin (id, this.getSparseMatrix (cr, "_matrix_", 1, 3));
+}
+});
+Clazz.defineMethod (c$, "addTwin", 
+ function (id, m) {
+System.out.println ("twin " + id + " = " + m);
+}, "~S,JU.Matrix");
+Clazz.defineMethod (c$, "getSparseMatrix", 
+ function (cr, term, i, dim) {
+var m =  new JU.Matrix (null, dim, dim);
 var a = m.getArray ();
 var key;
 var p;
 var n = cr.parser.getFieldCount ();
 for (; i < n; ++i) {
-if ((p = this.fieldProperty (cr, i)) < 0 || !(key = cr.parser.getField (p)).contains ("_w_")) continue;
+if ((p = this.fieldProperty (cr, i)) < 0 || !(key = cr.parser.getField (p)).contains (term)) continue;
 var tokens = JU.PT.split (key, "_");
-var r = cr.parseIntStr (tokens[tokens.length - 2]) - 1;
-var c = cr.parseIntStr (tokens[tokens.length - 1]) - 1;
-a[r][c] = cr.parseFloatStr (this.field);
+var r = cr.parseIntStr (tokens[tokens.length - 2]);
+var c = cr.parseIntStr (tokens[tokens.length - 1]);
+if (r > 0 && c > 0) a[r - 1][c - 1] = cr.parseFloatStr (this.field);
 }
 return m;
-}, "J.adapter.readers.cif.CifReader,~N");
+}, "J.adapter.readers.cif.CifReader,~S,~N,~N");
 Clazz.defineMethod (c$, "fieldProperty", 
  function (cr, i) {
 return ((this.field = cr.parser.getLoopData (i)).length > 0 && this.field.charAt (0) != '\0' ? cr.propertyOf[i] : -1);

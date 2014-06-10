@@ -219,6 +219,7 @@ return 1e-8;
 Clazz.defineMethod (c$, "getState", 
 function (type) {
 var s =  new JU.SB ();
+if (this.isValid) {
 s.append (type);
 if (!type.equals ("mo")) s.append (" ID ").append (JU.PT.esc (this.thisID));
 if (this.lattice != null) s.append (" lattice ").append (JU.Escape.eP (this.lattice));
@@ -229,7 +230,7 @@ if (this.bsDisplay != null) {
 s.append (";\n  ").append (type);
 if (!type.equals ("mo")) s.append (" ID ").append (JU.PT.esc (this.thisID));
 s.append (" display " + JU.Escape.eBS (this.bsDisplay));
-}return s.toString ();
+}}return s.toString ();
 }, "~S");
 Clazz.defineMethod (c$, "getRendering", 
 function () {

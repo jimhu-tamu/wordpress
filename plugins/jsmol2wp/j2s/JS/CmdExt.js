@@ -3190,7 +3190,7 @@ var sfdat = this.vwr.getFileAsString (strCutoff, false);
 JU.Logger.info (sfdat);
 sfdat = JU.PT.split (sfdat, "MAP_SIGMA_DENS")[1];
 cutoff = JU.PT.parseFloat (sfdat);
-JU.Logger.info ("using cutoff = " + cutoff);
+this.showString ("using cutoff = " + cutoff);
 } catch (e) {
 if (Clazz.exceptionOf (e, Exception)) {
 JU.Logger.error ("MAP_SIGMA_DENS -- could  not read " + info[1]);
@@ -3209,9 +3209,10 @@ sbCommand.append (" cutoff ").appendF (cutoff);
 onlyOneModel = "=xxxx";
 if (modelIndex < 0) modelIndex = this.vwr.am.cmi;
 bs = this.vwr.getModelUndeletedAtomsBitSet (modelIndex);
+if (bs.nextSetBit (0) >= 0) {
 this.getWithinDistanceVector (propertyList, 2.0, null, bs, false);
 sbCommand.append (" within 2.0 ").append (JU.Escape.eBS (bs));
-}if (firstPass) defaultMesh = true;
+}}if (firstPass) defaultMesh = true;
 }if (firstPass && this.vwr.getP ("_fileType").equals ("Pdb") && Float.isNaN (sigma) && Float.isNaN (cutoff)) {
 this.addShapeProperty (propertyList, "sigma", Float.$valueOf (-1));
 sbCommand.append (" sigma -1.0");
@@ -3244,7 +3245,7 @@ this.addShapeProperty (propertyList, "localName", localName);
 fullPathNameOrError = this.vwr.getFullPathNameOrError (filename);
 filename = fullPathNameOrError[0];
 if (fullPathNameOrError[1] != null) eval.errorStr (17, filename + ":" + fullPathNameOrError[1]);
-}JU.Logger.info ("reading isosurface data from " + filename);
+}this.showString ("reading isosurface data from " + filename);
 if (stype != null) {
 propertyValue = this.vwr.cacheGet (filename);
 this.addShapeProperty (propertyList, "calculationType", stype);
@@ -3336,7 +3337,7 @@ if (modelIndex < 0) modelIndex = this.vwr.am.cmi;
 bsSelect.and (this.vwr.getModelUndeletedAtomsBitSet (modelIndex));
 if (onlyOneModel != null) {
 var bsModels = this.vwr.ms.getModelBS (bsSelect, false);
-if (bsModels.cardinality () != 1) eval.errorStr (30, "ISOSURFACE " + onlyOneModel);
+if (bsModels.cardinality () > 1) eval.errorStr (30, "ISOSURFACE " + onlyOneModel);
 if (needSelect) {
 propertyList.add (0, ["select", bsSelect]);
 if (sbCommand.indexOf ("; isosurface map") == 0) {
@@ -3916,8 +3917,8 @@ switch (this.getToken (1).tok) {
 case 1048589:
 case 1048588:
 if (this.chk) return;
-eval.setObjectMad (31, "axes", 1);
-this.setShapeProperty (31, "position", JU.P3.new3 (50, 50, 3.4028235E38));
+eval.setObjectMad (33, "axes", 1);
+this.setShapeProperty (33, "position", JU.P3.new3 (50, 50, 3.4028235E38));
 eval.setBooleanProperty ("navigationMode", true);
 this.vwr.tm.setNavOn (eval.theTok == 1048589);
 return;
@@ -4723,24 +4724,30 @@ if (m.containsKey ("$_BINARY_$")) {
 v =  new JU.Lst ();
 if (fileName != null) for (var e, $e = m.entrySet ().iterator (); $e.hasNext () && ((e = $e.next ()) || true);) {
 var key = e.getKey ();
+if (key.equals ("$_BINARY_$")) continue;
 var o = e.getValue ();
 bytes = (o.tok == 15 ? (o.value).data : null);
 if (bytes == null) {
 var s = o.asString ();
 bytes = (s.startsWith (";base64,") ? JU.Base64.decodeBase64 (s) : s.getBytes ());
-}if (key.equals ("_IMAGE_")) {
+}if (key.equals ("_DATA_")) {
+v = null;
+if (bytes == null) bytes = (o.value).data;
+break;
+} else if (key.equals ("_IMAGE_")) {
 v.add (0, key);
 v.add (1, bytes);
-} else if (!key.equals ("$_BINARY_$")) {
+} else {
 v.addLast (key);
 v.addLast (null);
 v.addLast (bytes);
 }}
 }}if (v == null) {
+if (bytes == null) {
 data = tVar.asString ();
 type = "TXT";
-} else {
-if (fileName != null && (bytes = data = this.vwr.createZip (fileName, "ZIPDATA", v)) == null) this.e.evalError ("#CANCELED#", null);
+}} else {
+if (fileName != null && (bytes = data = this.vwr.createZip (fileName, v.size () == 1 ? "BINARY" : "ZIPDATA", v)) == null) this.e.evalError ("#CANCELED#", null);
 }} else if (data === "SPT") {
 if (isCoord) {
 var tainted = this.vwr.ms.getTaintedAtoms (2);

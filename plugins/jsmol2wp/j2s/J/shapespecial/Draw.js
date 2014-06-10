@@ -705,6 +705,7 @@ if (dmesh.isRenderScalable ()) return;
 var diff =  new JU.V3 ();
 var iptlast = -1;
 var ipt = 0;
+try {
 for (var i = dmesh.pc; --i >= 0; ) {
 var center = (dmesh.isVector ? dmesh.vs[0] : dmesh.ptCenters == null ? dmesh.ptCenter : dmesh.ptCenters[i]);
 if (center == null) return;
@@ -718,6 +719,14 @@ diff.sub2 (dmesh.vs[ipt], center);
 diff.scale (f);
 diff.add (center);
 dmesh.vs[ipt].setT (diff);
+}
+}
+} catch (e) {
+if (Clazz.exceptionOf (e, Exception)) {
+JU.Logger.info ("Error executing DRAW command: " + e);
+dmesh.isValid = false;
+} else {
+throw e;
 }
 }
 }, "J.shape.Mesh,~N");
@@ -892,7 +901,7 @@ return sb.toString ();
 Clazz.defineMethod (c$, "getCommand2", 
 function (mesh, iModel) {
 var dmesh = mesh;
-if (dmesh.drawType === J.shapespecial.Draw.EnumDrawType.NONE && dmesh.lineData == null && dmesh.drawVertexCount == 0 && dmesh.drawVertexCounts == null) return "";
+if (!dmesh.isValid || dmesh.drawType === J.shapespecial.Draw.EnumDrawType.NONE && dmesh.lineData == null && dmesh.drawVertexCount == 0 && dmesh.drawVertexCounts == null) return "";
 var str =  new JU.SB ();
 var modelCount = this.vwr.getModelCount ();
 if (!dmesh.isFixed && iModel >= 0 && modelCount > 1) J.shape.Shape.appendCmd (str, "frame " + this.vwr.getModelNumberDotted (iModel));

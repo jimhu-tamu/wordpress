@@ -150,7 +150,7 @@ if (needOrientations && models[i].orientation != null && !ms.isTrajectorySubFram
 if (models[i].frameDelay != 0 && !ms.isTrajectorySubFrame (i)) commands.append (fcmd).append ("; frame delay ").appendF (models[i].frameDelay / 1000).append (";\n");
 if (models[i].simpleCage != null) {
 commands.append (fcmd).append ("; unitcell ").append (JU.Escape.eAP (models[i].simpleCage.getUnitCellVectors ())).append (";\n");
-this.getShapeState (commands, isAll, 33);
+this.getShapeState (commands, isAll, 32);
 }}
 var loadUC = false;
 if (ms.unitCells != null) {
@@ -170,8 +170,8 @@ loadUC = true;
 }commands.append (";\n");
 haveModulation = new Boolean (haveModulation | (this.vwr.modelGetLastVibrationIndex (i, 1276121113) >= 0)).valueOf ();
 }
-if (loadUC) this.vwr.shm.loadShape (33);
-this.getShapeState (commands, isAll, 33);
+if (loadUC) this.vwr.shm.loadShape (32);
+this.getShapeState (commands, isAll, 32);
 if (haveModulation) {
 var temp =  new java.util.Hashtable ();
 var ivib;
@@ -218,8 +218,9 @@ this.app (str, "stateVersion = " + JV.JC.versionInt);
 this.app (str, "background " + JU.Escape.escapeColor (global.objColors[0]));
 for (var i = 1; i < 8; i++) if (global.objColors[i] != 0) this.app (str, JV.StateManager.getObjectNameFromId (i) + "Color = \"" + JU.Escape.escapeColor (global.objColors[i]) + '"');
 
-if (global.backgroundImageFileName != null) this.app (str, "background IMAGE /*file*/" + JU.PT.esc (global.backgroundImageFileName));
-str.append (this.getSpecularState ());
+if (global.backgroundImageFileName != null) {
+this.app (str, "background IMAGE " + (global.backgroundImageFileName.startsWith (";base64,") ? "" : "/*file*/") + JU.PT.esc (global.backgroundImageFileName));
+}str.append (this.getSpecularState ());
 this.app (str, "statusReporting  = " + global.statusReporting);
 if (sfunc != null) str.append ("}\n\n");
 return str.toString ();
@@ -856,7 +857,7 @@ this.clearTemp ();
 var type = JV.JC.shapeClassBases[shape.shapeID];
 var isVector = (shape.shapeID == 18);
 var mad;
-if (shape.bsSizeSet != null) for (var i = shape.bsSizeSet.nextSetBit (0); i >= 0; i = shape.bsSizeSet.nextSetBit (i + 1)) JU.BSUtil.setMapBitSet (this.temp, i, i, type + ((mad = shape.mads[i]) < 0 ? (isVector && mad < -1 ? " " + -mad : " on") : JU.PT.escF (mad / 2000)));
+if (shape.bsSizeSet != null) for (var i = shape.bsSizeSet.nextSetBit (0); i >= 0; i = shape.bsSizeSet.nextSetBit (i + 1)) JU.BSUtil.setMapBitSet (this.temp, i, i, type + " " + ((mad = shape.mads[i]) < 0 ? (isVector && mad < -1 ? "" + -mad : "on") : JU.PT.escF (mad / 2000)));
 
 if (shape.bsColixSet != null) for (var i = shape.bsColixSet.nextSetBit (0); i >= 0; i = shape.bsColixSet.nextSetBit (i + 1)) JU.BSUtil.setMapBitSet (this.temp2, i, i, J.shape.Shape.getColorCommand (type, shape.paletteIDs[i], shape.colixes[i], shape.translucentAllowed));
 

@@ -215,15 +215,14 @@ function () {
 var shapes = this.shapes;
 if (shapes == null || shapes[0] == null) return;
 var bs = this.vwr.getVisibleFramesBitSet ();
-for (var i = 1; i < 36; i++) if (shapes[i] != null) shapes[i].setVisibilityFlags (bs);
+for (var i = 8; i < 32; i++) if (shapes[i] != null) shapes[i].setVisibilityFlags (bs);
 
 var showHydrogens = this.vwr.getBoolean (603979922);
 var bsDeleted = this.vwr.getDeletedAtoms ();
 var atoms = this.ms.at;
-var flag0 = -48;
 for (var i = this.ms.ac; --i >= 0; ) {
 var atom = atoms[i];
-atom.shapeVisibilityFlags &= flag0;
+atom.shapeVisibilityFlags &= -64;
 if (bsDeleted != null && bsDeleted.get (i) || !showHydrogens && atom.getElementNumber () == 1) continue;
 var modelIndex = atom.getModelIndex ();
 if (bs.get (modelIndex)) {
@@ -233,7 +232,6 @@ f |= 8;
 if (atom.madAtom != 0) f |= 16;
 atom.setShapeVisibility (f, true);
 }}}
-shapes[0].setVisibilityFlags (bs);
 for (var i = 0; i < 36; ++i) {
 var shape = shapes[i];
 if (shape != null) shape.setModelClickability ();
@@ -270,7 +268,7 @@ atom.sD = Clazz.floatToShort (vwr.tm.scaleToScreen (screen.z, d));
 }
 if (tm.slabEnabled) {
 var slabByMolecule = vwr.getBoolean (603979940);
-var slabByAtom = vwr.getBoolean (603979938);
+var slabByAtom = vwr.getBoolean (603979939);
 var minZ = gdata.getSlab ();
 var maxZ = gdata.getDepth ();
 if (slabByMolecule) {

@@ -248,11 +248,11 @@ return 29;
 case 537022465:
 return 30;
 case 1611272194:
-return 31;
-case 1679429641:
-return 32;
-case 1614417948:
 return 33;
+case 1679429641:
+return 31;
+case 1614417948:
+return 32;
 case 544771:
 return 34;
 case 1611272202:
@@ -267,7 +267,7 @@ return "J." + (isRenderer ? "render" : "shape") + (shapeID >= 9 && shapeID < 16 
 }, "~N,~B");
 c$.isScriptType = Clazz.defineMethod (c$, "isScriptType", 
 function (fname) {
-return JU.PT.isOneOf (fname.substring (fname.lastIndexOf (".") + 1), "pse;spt;png;pngj;jmol;zip");
+return JU.PT.isOneOf (fname.substring (fname.lastIndexOf (".") + 1), ";pse;spt;png;pngj;jmol;zip;");
 }, "~S");
 c$.getOffset = Clazz.defineMethod (c$, "getOffset", 
 function (xOffset, yOffset) {
@@ -526,6 +526,7 @@ Clazz.defineStatics (c$,
 "SHAPE_LABELS", 5,
 "SHAPE_MEASURES", 6,
 "SHAPE_STARS", 7,
+"SHAPE_MIN_HAS_SETVIS", 8,
 "SHAPE_HALOS", 8,
 "SHAPE_MIN_SECONDARY", 9,
 "SHAPE_BACKBONE", 9,
@@ -561,9 +562,10 @@ Clazz.defineStatics (c$,
 "SHAPE_MAX_MESH_COLLECTION", 29,
 "SHAPE_ECHO", 30,
 "SHAPE_MAX_HAS_ID", 31,
-"SHAPE_AXES", 31,
-"SHAPE_BBCAGE", 32,
-"SHAPE_UCCAGE", 33,
+"SHAPE_BBCAGE", 31,
+"SHAPE_MAX_HAS_SETVIS", 32,
+"SHAPE_UCCAGE", 32,
+"SHAPE_AXES", 33,
 "SHAPE_HOVER", 34,
 "SHAPE_FRANK", 35,
 "SHAPE_MAX", 36,
@@ -571,14 +573,14 @@ Clazz.defineStatics (c$,
 "ATOM_VISSET", 2,
 "ATOM_VISIBLE", 4,
 "ATOM_NOTHIDDEN", 8,
-"ATOM_NOFLAGS", -16,
+"ATOM_NOFLAGS", -64,
 "ATOM_INFRAME_NOTHIDDEN", 9,
 "ATOM_SHAPE_VIS_MASK", -10,
 "VIS_BOND_FLAG", 32,
 "VIS_BALLS_FLAG", 16,
 "VIS_LABEL_FLAG", 512,
 "VIS_BACKBONE_FLAG", 8192,
-"shapeClassBases", ["Balls", "Sticks", "Hsticks", "Sssticks", "Struts", "Labels", "Measures", "Stars", "Halos", "Backbone", "Trace", "Cartoon", "Strands", "MeshRibbon", "Ribbons", "Rockets", "Dots", "Dipoles", "Vectors", "GeoSurface", "Ellipsoids", "Polyhedra", "Draw", "CGO", "Isosurface", "Contact", "LcaoCartoon", "MolecularOrbital", "Pmesh", "Plot3D", "Echo", "Axes", "Bbcage", "Uccage", "Hover", "Frank"],
+"shapeClassBases", ["Balls", "Sticks", "Hsticks", "Sssticks", "Struts", "Labels", "Measures", "Stars", "Halos", "Backbone", "Trace", "Cartoon", "Strands", "MeshRibbon", "Ribbons", "Rockets", "Dots", "Dipoles", "Vectors", "GeoSurface", "Ellipsoids", "Polyhedra", "Draw", "CGO", "Isosurface", "Contact", "LcaoCartoon", "MolecularOrbital", "Pmesh", "Plot3D", "Echo", "Bbcage", "Uccage", "Axes", "Hover", "Frank"],
 "SCRIPT_COMPLETED", "Script completed",
 "JPEG_EXTENSIONS", ";jpg;jpeg;jpg64;jpeg64;");
 c$.IMAGE_TYPES = c$.prototype.IMAGE_TYPES = ";jpg;jpeg;jpg64;jpeg64;gif;pdf;ppm;png;pngj;pngt;";

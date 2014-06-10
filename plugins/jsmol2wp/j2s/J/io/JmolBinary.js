@@ -77,9 +77,9 @@ function (br) {
 return J.io.JmolBinary.getJzu ().determineSurfaceFileType (br);
 }, "java.io.BufferedReader");
 Clazz.defineMethod (c$, "getImage", 
-function (vwr, fullPathName, echoName) {
-return J.io.JmolBinary.getJzu ().getImage (vwr, fullPathName, echoName);
-}, "JV.Viewer,~S,~S");
+function (vwr, fullPathNameOrBytes, echoName) {
+return J.io.JmolBinary.getJzu ().getImage (vwr, fullPathNameOrBytes, echoName);
+}, "JV.Viewer,~O,~S");
 c$.getFileReferences = Clazz.defineMethod (c$, "getFileReferences", 
 function (script, fileList) {
 for (var ipt = 0; ipt < JV.FileManager.scriptFilePrefixes.length; ipt++) {

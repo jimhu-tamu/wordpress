@@ -78,7 +78,7 @@ throw e;
 }
 }if (Clazz.instanceOf (this.atomSetCollection, String)) return;
 if (!this.isAppend && !this.vwr.displayLoadErrors) this.vwr.zap (false, true, false);
-this.fm.setFileInfo ([this.fullPathNameIn, this.nameAsGivenIn, this.fileNameIn]);
+this.fm.setFileInfo ([this.fullPathNameIn, this.fileNameIn, this.nameAsGivenIn]);
 });
 Clazz.defineMethod (c$, "getAtomSetCollection", 
 function () {

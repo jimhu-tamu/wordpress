@@ -7,6 +7,7 @@ this.fractionalOffset = null;
 this.allFractionalRelative = false;
 this.unitCellMultiplier = null;
 this.moreInfo = null;
+this.name = "";
 Clazz.instantialize (this, arguments);
 }, JS, "UnitCell", JU.SimpleUnitCell);
 Clazz.prepareFields (c$, function () {
@@ -141,7 +142,7 @@ maxXYZ.z = 1;
 }, "JU.P3i,JU.P3i");
 Clazz.defineMethod (c$, "dumpInfo", 
 function (isFull) {
-return "a=" + this.a + ", b=" + this.b + ", c=" + this.c + ", alpha=" + this.alpha + ", beta=" + this.beta + ", gamma=" + this.gamma + (isFull ? "\nfractional to cartesian: " + this.matrixFractionalToCartesian + "\ncartesian to fractional: " + this.matrixCartesianToFractional : "");
+return "a=" + this.a + ", b=" + this.b + ", c=" + this.c + ", alpha=" + this.alpha + ", beta=" + this.beta + ", gamma=" + this.gamma + "\n" + JU.Escape.eAP (this.getUnitCellVectors ()) + "\nvolume=" + this.volume + (isFull ? "\nfractional to cartesian: " + this.matrixFractionalToCartesian + "\ncartesian to fractional: " + this.matrixCartesianToFractional : "");
 }, "~B");
 Clazz.defineMethod (c$, "getVertices", 
 function () {
@@ -253,8 +254,12 @@ return this.unitCellMultiplier;
 Clazz.defineMethod (c$, "getUnitCellVectors", 
 function () {
 var m = this.matrixFractionalToCartesian;
-return [JU.V3.newV (this.cartesianOffset), JU.V3.new3 (m.m00, m.m10, m.m20), JU.V3.new3 (m.m01, m.m11, m.m21), JU.V3.new3 (m.m02, m.m12, m.m22)];
+return [JU.V3.newV (this.cartesianOffset), JU.V3.new3 (this.fix (m.m00), this.fix (m.m10), this.fix (m.m20)), JU.V3.new3 (this.fix (m.m01), this.fix (m.m11), this.fix (m.m21)), JU.V3.new3 (this.fix (m.m02), this.fix (m.m12), this.fix (m.m22))];
 });
+Clazz.defineMethod (c$, "fix", 
+ function (x) {
+return (Math.abs (x) < 0.001 ? 0 : x);
+}, "~N");
 Clazz.defineMethod (c$, "isSameAs", 
 function (uc) {
 if (uc.notionalUnitcell.length != this.notionalUnitcell.length) return false;

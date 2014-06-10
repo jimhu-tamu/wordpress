@@ -460,7 +460,7 @@ pc = this.iToken;
 break;
 case 135266319:
 rpn.addX (JS.SV.newT (instruction));
-rpn.addX (JS.SV.newV (9, this.planeParameter (pc + 1)));
+rpn.addX (JS.SV.newV (9, this.planeParameter (pc + 2)));
 pc = this.iToken;
 break;
 case 1048581:

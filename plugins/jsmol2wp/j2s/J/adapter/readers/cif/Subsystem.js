@@ -61,7 +61,7 @@ uc_nu[0] = vu43[0];
 for (var i = 0; i < 3; i++) uc_nu[i + 1] = JU.V3.new3 (a[i][0], a[i][1], a[i][2]);
 
 uc_nu = this.reciprocalsOf (uc_nu);
-this.symmetry = J.api.Interface.getSymmetry ().getUnitCell (uc_nu, false);
+this.symmetry = J.api.Interface.getSymmetry ().getUnitCell (uc_nu, false, null);
 this.modMatrices = [sigma_nu, tFactor];
 if (!setOperators) return;
 this.isFinalized = true;

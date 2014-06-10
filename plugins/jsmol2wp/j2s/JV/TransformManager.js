@@ -1701,7 +1701,7 @@ this.scaleFitToScreen (false, zoomLarge, false, true);
 }, "~B,~B");
 Clazz.defineMethod (c$, "setAll", 
 function (center, m, navCenter, zoom, xTrans, yTrans, rotationRadius, pixelScale, navDepth, xNav, yNav, cameraDepth, cameraX, cameraY) {
-this.setRotation (m);
+if (!Float.isNaN (m.m00)) this.setRotation (m);
 if (center != null) this.moveRotationCenter (center, !this.windowCentered);
 if (navCenter != null && this.mode == 1) this.navigationCenter.setT (navCenter);
 if (!Float.isNaN (cameraDepth)) this.setCameraDepthPercent (cameraDepth, false);

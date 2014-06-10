@@ -391,7 +391,7 @@ this.addTokenToPrefix (JS.T.o (0, this.comment));
 }} else if (this.setBraceCount > 0 && this.endOfLine && this.ichToken < this.cchScript) {
 return 2;
 }if (this.wasImpliedScript ()) return 2;
-if (this.isNewSet && this.nTokens > 2 && this.tokAt (2) == 1048583 && (this.tokAt (3) == 1276117011 || this.tokAt (3) == 1141899269 || this.tokAt (3) == 1276383749 || this.tokAt (3) == 1276383249)) {
+if (this.isNewSet && this.nTokens > 2 && this.tokAt (2) == 1048583 && (this.tokAt (3) == 1276117011 || this.tokAt (3) == 1141899269 || this.tokAt (3) == 1276384259 || this.tokAt (3) == 1276383249)) {
 this.ltoken.set (0, JS.T.tokenSet);
 this.ltoken.add (1, this.tokAt (3) == 1276383249 ? JS.T.tokenAll : this.ltoken.get (1));
 } else if (this.tokInitialPlusPlus != 0) {
@@ -667,6 +667,7 @@ var strFormat = this.script.substring (this.ichToken, this.ichToken + this.cchTo
 var token = JS.T.getTokenFromName (strFormat.toLowerCase ());
 switch (token == null ? 0 : token.tok) {
 case 1073742015:
+case 1073742077:
 case 1073741839:
 if (this.nTokens != 1) return 4;
 case 135270408:
@@ -731,7 +732,7 @@ return 2;
 this.implicitString = new Boolean (this.implicitString & (this.nTokens == 1)).valueOf ();
 if (this.implicitString && !(this.tokCommand == 135271429 && this.iHaveQuotedString) && this.lookingAtImpliedString (true, true, true)) {
 var str = this.script.substring (this.ichToken, this.ichToken + this.cchToken);
-if (this.tokCommand == 1826248716 && JU.PT.isOneOf (str.toLowerCase (), "on;off;hide;display")) this.addTokenToPrefix (JS.T.getTokenFromName (str.toLowerCase ()));
+if (this.tokCommand == 1826248716 && JU.PT.isOneOf (str.toLowerCase (), ";on;off;hide;display;")) this.addTokenToPrefix (JS.T.getTokenFromName (str.toLowerCase ()));
  else this.addTokenToPrefix (JS.T.o (4, str));
 return 2;
 }if (this.lookingAtObjectID ()) {
@@ -1268,7 +1269,7 @@ var token = this.vBraces.remove (--this.iBrace);
 if (this.theTok == 1048586) {
 this.braceCount--;
 this.parenCount--;
-}if (token.tok == 1276383749) {
+}if (token.tok == 1276384259) {
 this.vPush.remove (--this.pushCount);
 this.addTokenToPrefix (this.setCommand (JS.ContextToken.newContext (false)));
 this.isEndOfCommand = true;
@@ -1544,7 +1545,7 @@ Clazz.defineMethod (c$, "getUnescapedStringLiteral",
 if (isFileName) {
 var s = this.script.substring (this.ichToken + 1, this.ichToken + this.cchToken - 1);
 if (s.indexOf ("\\u") >= 0) s = JU.Escape.unescapeUnicode (s);
-return s;
+if (s.indexOf (";base64,") != 0) return s;
 }var sb = JU.SB.newN (this.cchToken - 2);
 var ichMax = this.ichToken + this.cchToken - 1;
 var ich = this.ichToken + 1;

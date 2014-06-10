@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JS");
-Clazz.load (["JS.JmolMathExtension"], "JS.MathExt", ["java.lang.Float", "java.util.Date", "JU.AU", "$.BS", "$.Base64", "$.CU", "$.Lst", "$.M3", "$.M4", "$.P3", "$.P4", "$.PT", "$.Quat", "$.SB", "$.V3", "J.api.Interface", "J.atomdata.RadiusData", "J.c.VDW", "J.i18n.GT", "JM.BondSet", "JS.SV", "$.ScriptParam", "$.T", "JU.BSUtil", "$.Escape", "$.JmolMolecule", "$.Logger", "$.Measure", "$.Parser", "$.Point3fi", "$.Txt"], function () {
+Clazz.load (["JS.JmolMathExtension"], "JS.MathExt", ["java.lang.Float", "java.util.Date", "JU.AU", "$.BS", "$.CU", "$.Lst", "$.M3", "$.M4", "$.P3", "$.P4", "$.PT", "$.Quat", "$.SB", "$.V3", "J.api.Interface", "J.atomdata.RadiusData", "J.c.VDW", "J.i18n.GT", "JM.BondSet", "JS.SV", "$.ScriptParam", "$.T", "JU.BSUtil", "$.Escape", "$.JmolMolecule", "$.Logger", "$.Measure", "$.Parser", "$.Point3fi", "$.Txt"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.vwr = null;
 this.e = null;
@@ -30,7 +30,7 @@ case 1276117504:
 case 1276117507:
 case 1276117508:
 case 1276117511:
-case 1276383749:
+case 1276384259:
 case 1276383249:
 return this.evaluateList (mp, op.intValue, args);
 case 135266306:
@@ -71,7 +71,7 @@ case 1276118531:
 return this.evaluateFind (mp, args);
 case 1288701959:
 case 1826248716:
-return this.evaluateLabel (mp, op.intValue, args);
+return this.evaluateFormat (mp, op.intValue, args, tok == 1288701959);
 case 135368713:
 return this.evaluateUserFunction (mp, op.value, args, op.intValue, op.tok == 269484241);
 case 1276121098:
@@ -140,7 +140,6 @@ break;
 }
 if (isMatrix) return (len == 3 ? mp.addXM3 (JU.M3.newA9 (m)) : mp.addXM4 (JU.M4.newA16 (m)));
 }}var a =  new Array (args.length);
-if (!allowMatrix && args.length == 1 && args[0].tok == 4 && args[0].asString ().startsWith (";base64,")) return mp.addXObj (JS.SV.newV (15, JU.Base64.decodeBase64 (args[0].asString ())));
 for (var i = a.length; --i >= 0; ) a[i] = JS.SV.newT (args[i]);
 
 return mp.addXAV (a);
@@ -722,25 +721,26 @@ if (pt < args.length) property = this.vwr.extractProperty (property, args, pt);
 if (isAtomProperty && Clazz.instanceOf (property, JU.Lst)) property = ((property).size () > 0 ? (property).get (0) : "");
 return mp.addXObj (isJSON ? "{" + JU.PT.toJSON ("value", property) + "}" : JS.SV.isVariableType (property) ? property : JU.Escape.toReadable (propertyName, property));
 }, "JS.ScriptMathProcessor,~A,~B");
-Clazz.defineMethod (c$, "evaluateLabel", 
- function (mp, intValue, args) {
+Clazz.defineMethod (c$, "evaluateFormat", 
+ function (mp, intValue, args, isLabel) {
 var x1 = (args.length < 2 ? mp.getX () : null);
 var format = (args.length == 0 ? "%U" : JS.SV.sValue (args[0]));
-var asArray = JS.T.tokAttr (intValue, 480);
 if (x1 == null) {
-if (args.length < 2 || args[1].tok != 7) return mp.addXStr (JS.SV.sprintfArray (args));
+var pt = (isLabel ? -1 : JS.SV.getFormatType (format));
+if (pt >= 0 && args.length != 2) return false;
+if (pt >= 0 || args.length < 2 || args[1].tok != 7) return mp.addXObj (JS.SV.format (args, pt));
 var a = args[1].getList ();
 var args2 = [args[0], null];
 var sa =  new Array (a.size ());
 for (var i = sa.length; --i >= 0; ) {
 args2[1] = a.get (i);
-sa[i] = JS.SV.sprintfArray (args2);
+sa[i] = JS.SV.format (args2, pt).toString ();
 }
 return mp.addXAS (sa);
 }var bs = JS.SV.getBitSet (x1, true);
-if (bs == null) return mp.addXObj (JS.SV.sprintf (JU.Txt.formatCheck (format), x1));
-return mp.addXObj (this.e.getCmdExt ().getBitsetIdent (bs, format, x1.value, true, x1.index, asArray));
-}, "JS.ScriptMathProcessor,~N,~A");
+var asArray = JS.T.tokAttr (intValue, 480);
+return mp.addXObj (bs == null ? JS.SV.sprintf (JU.Txt.formatCheck (format), x1) : this.e.getCmdExt ().getBitsetIdent (bs, format, x1.value, true, x1.index, asArray));
+}, "JS.ScriptMathProcessor,~N,~A,~B");
 Clazz.defineMethod (c$, "evaluateList", 
  function (mp, tok, args) {
 var len = args.length;
@@ -748,10 +748,10 @@ var x1 = mp.getX ();
 var isArray1 = (x1.tok == 7);
 var x2;
 switch (tok) {
-case 1276383749:
-return (len == 1 && mp.addX (x1.pushPop (args[0])));
+case 1276384259:
+return (len == 2 && mp.addX (x1.pushPop (args[1], args[0])) || len == 1 && mp.addX (x1.pushPop (args[0], null)));
 case 1276383249:
-return (len == 0 && mp.addX (x1.pushPop (null)));
+return (len == 1 && mp.addX (x1.pushPop (null, args[0])) || len == 0 && mp.addX (x1.pushPop (null, null)));
 case 1276118017:
 if (len != 1 && len != 2) return false;
 break;

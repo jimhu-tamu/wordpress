@@ -446,6 +446,7 @@ this.saveAmbient = this.shader.ambientPercent;
 this.saveDiffuse = this.shader.diffusePercent;
 this.setAmbientPercent (100);
 this.setDiffusePercent (0);
+this.addRenderer (1073741880);
 } else {
 this.setAmbientPercent (this.saveAmbient);
 this.setDiffusePercent (this.saveDiffuse);

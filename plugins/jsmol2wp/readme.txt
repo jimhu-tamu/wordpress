@@ -30,6 +30,16 @@ This plugin also benefited from using Jaime Prilusky's mediawiki extension for i
 http://proteopedia.org/support/JSmolExtension/
 
 == Development notes ==
+0.7 beta
+- update jsmol libraries to 4.1.7_2014.06.09
+- add dependencies for jquery-ui-core and jquery-ui-menu fixes popup problem in some themes
+- refactor to support additional file types (in progress)
+- fix multiline regex bug
+- fix bug that caused failure to load when permalinks used ?p=post_number format
+- debug constructor
+-  debug view
+-- add path to uploaded file
+-- add test for get_page_by_title
 0.6 alpha
 - register script before enqueueing it.
 - added ability to add Jmol.script commands

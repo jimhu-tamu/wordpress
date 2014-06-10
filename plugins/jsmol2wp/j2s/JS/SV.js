@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JS");
-Clazz.load (["javajs.api.JSONEncodable", "JS.T", "JU.P3"], "JS.SV", ["java.lang.Boolean", "$.Float", "java.util.Arrays", "$.Collections", "$.Hashtable", "$.Map", "JU.BArray", "$.BS", "$.Base64", "$.Lst", "$.M3", "$.M34", "$.M4", "$.P4", "$.PT", "$.Quat", "$.SB", "$.T3", "$.V3", "JM.BondSet", "JS.ScriptContext", "JU.BSUtil", "$.Escape", "$.Measure", "$.Txt"], function () {
+Clazz.load (["javajs.api.JSONEncodable", "JS.T", "JU.P3"], "JS.SV", ["java.lang.Boolean", "$.Float", "java.util.Arrays", "$.Collections", "$.Hashtable", "$.Map", "JU.AU", "$.BArray", "$.BS", "$.Base64", "$.Lst", "$.M3", "$.M34", "$.M4", "$.P4", "$.PT", "$.Quat", "$.SB", "$.T3", "$.V3", "JM.BondSet", "JS.ScriptContext", "JU.BSUtil", "$.Escape", "$.Measure", "$.Txt"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.index = 2147483647;
 this.flags = 2;
@@ -66,7 +66,7 @@ return -32;
 case 12:
 return -64;
 case 15:
-return -256;
+return (x.value).data.length;
 case 4:
 return (x.value).length;
 case 7:
@@ -585,7 +585,7 @@ return x.value;
 }, "JS.T,~N");
 c$.selectItemVar = Clazz.defineMethod (c$, "selectItemVar", 
 function ($var) {
-if ($var.index != 2147483647 || $var.tok == 7 && $var.intValue == 2147483647) return $var;
+if ($var.index != 2147483647 || ($var.tok == 7 || $var.tok == 15) && $var.intValue == 2147483647) return $var;
 return JS.SV.selectItemTok ($var, -2147483648);
 }, "JS.SV");
 c$.selectItemTok = Clazz.defineMethod (c$, "selectItemTok", 
@@ -595,6 +595,7 @@ case 11:
 case 12:
 case 10:
 case 7:
+case 15:
 case 4:
 break;
 default:
@@ -618,6 +619,9 @@ len = JU.BSUtil.cardinalityOf (bs);
 bs = JU.BSUtil.copy (tokenIn.value);
 len = (isInputSelected ? 1 : JU.BSUtil.cardinalityOf (bs));
 }break;
+case 15:
+len = (((tokenIn).value)).data.length;
+break;
 case 7:
 len = (tokenIn).getList ().size ();
 break;
@@ -690,6 +694,15 @@ var nn = Math.min (i2, len) - i1;
 for (var i = 0; i < nn; i++) o2.addLast (JS.SV.newT (o1.get (i + i1)));
 
 tokenOut.value = o2;
+break;
+case 15:
+if (--i1 < 0 || i1 >= len) return JS.SV.newV (4, "");
+var data = (((tokenIn).value)).data;
+if (isOne) return JS.SV.newI (data[i1]);
+var b =  Clazz.newByteArray (Math.min (i2, len) - i1, 0);
+for (var i = b.length; --i >= 0; ) b[i] = data[i1 + i];
+
+tokenOut.value =  new JU.BArray (b);
 break;
 }
 return tokenOut;
@@ -834,16 +847,51 @@ if (getP) of[4] = $var.value;
 if (getQ) of[5] = $var.value;
 return JU.Txt.sprintf (strFormat, "IFDspq", of);
 }, "~S,JS.SV,~A,~A,~A,~A,~B,~B,~B");
-c$.sprintfArray = Clazz.defineMethod (c$, "sprintfArray", 
-function (args) {
+c$.getFormatType = Clazz.defineMethod (c$, "getFormatType", 
+function (format) {
+return (format.indexOf (";") >= 0 ? -1 : ";json;base64;bytearray;array;".indexOf (";" + format.toLowerCase () + ";"));
+}, "~S");
+c$.format = Clazz.defineMethod (c$, "format", 
+function (args, pt) {
 switch (args.length) {
 case 0:
 return "";
 case 1:
 return JS.SV.sValue (args[0]);
 case 2:
-if (args[0].value.toString ().equalsIgnoreCase ("base64")) return ";base64," + JU.Base64.getBase64 (args[1].tok == 15 ? (args[1].value).data : args[1].asString ().getBytes ()).toString ();
-if (args[0].value.toString ().equalsIgnoreCase ("json")) return args[1].toJSON ();
+if (pt == 2147483647) pt = JS.SV.getFormatType (args[0].asString ());
+switch (pt) {
+case 0:
+return args[1].toJSON ();
+case 5:
+case 12:
+case 22:
+var bytes;
+switch (args[1].tok) {
+case 15:
+bytes = JU.AU.arrayCopyByte ((args[1].value).data, -1);
+break;
+case 7:
+var l = args[1].getList ();
+if (pt == 22) {
+var l1 =  new JU.Lst ();
+for (var i = l.size (); --i >= 0; ) l1.addLast (l.get (i));
+
+return l1;
+}bytes =  Clazz.newByteArray (l.size (), 0);
+for (var i = bytes.length; --i >= 0; ) bytes[i] = l.get (i).asInt ();
+
+break;
+default:
+var s = args[1].asString ();
+if (s.startsWith (";base64,")) {
+if (pt == 5) return s;
+bytes = JU.Base64.decodeBase64 (s);
+} else {
+bytes = s.getBytes ();
+}}
+return (pt == 22 ? JS.SV.getVariable (bytes) : pt == 12 ?  new JU.BArray (bytes) : ";base64," + JU.Base64.getBase64 (bytes).toString ());
+}
 }
 var sb =  new JU.SB ();
 var format = JU.PT.split (JU.PT.rep (JS.SV.sValue (args[0]), "%%", "\1"), "%");
@@ -858,7 +906,7 @@ continue;
 }sb.append (ret);
 }
 return sb.toString ();
-}, "~A");
+}, "~A,~N");
 c$.getBitSet = Clazz.defineMethod (c$, "getBitSet", 
 function (x, allowNull) {
 switch (x.tok) {
@@ -913,12 +961,19 @@ java.util.Collections.sort (this.getList (), Clazz.innerTypeInstance (JS.SV.Sort
 }}return this;
 }, "~N");
 Clazz.defineMethod (c$, "pushPop", 
-function (o) {
+function (value, mapKey) {
+if (mapKey != null) {
+var m = this.getMap ();
+if (value == null) {
+var v;
+return (m == null || (v = m.remove (mapKey.asString ())) == null ? JS.SV.newS ("") : v);
+}if (m != null) m.put (mapKey.asString (), JS.SV.newI (0).setv (value));
+} else {
 var x = this.getList ();
-if (o == null || x == null) return (x == null || x.size () == 0 ? JS.SV.newS ("") : x.remove (x.size () - 1));
-x.addLast (JS.SV.newI (0).setv (o));
-return this;
-}, "JS.SV");
+if (value == null || x == null) return (x == null || x.size () == 0 ? JS.SV.newS ("") : x.remove (x.size () - 1));
+x.addLast (JS.SV.newI (0).setv (value));
+}return this;
+}, "JS.SV,JS.SV");
 Clazz.defineMethod (c$, "unEscapeBitSetArray", 
 function (bs) {
 switch (this.tok) {
@@ -983,7 +1038,7 @@ for (var i = 0; i < dim; i++) {
 var a =  Clazz.newFloatArray (dim, 0);
 if (m3 == null) m4.getRow (i, a);
  else m3.getRow (i, a);
-o2.set (i, JS.SV.getVariableAF (a));
+o2.addLast (JS.SV.getVariableAF (a));
 }
 this.value = o2;
 });

@@ -183,6 +183,7 @@ this.propertyColorScheme = "roygb";
 this.quaternionFrame = "p";
 this.saveProteinStructureState = true;
 this.showUnitCellDetails = true;
+this.showUnitCellInfo = true;
 this.solventProbeRadius = 1.2;
 this.scriptDelay = 0;
 this.selectAllModels = true;
@@ -542,6 +543,7 @@ this.setS ("smilesUrlFormat", this.smilesUrlFormat);
 this.setS ("nihResolverFormat", this.nihResolverFormat);
 this.setS ("pubChemFormat", this.pubChemFormat);
 this.setB ("showUnitCellDetails", this.showUnitCellDetails);
+this.setB ("showUnitCellInfo", this.showUnitCellInfo);
 this.setB ("solventProbe", this.solventOn);
 this.setF ("solventProbeRadius", this.solventProbeRadius);
 this.setB ("specular", this.specular);
@@ -732,9 +734,9 @@ this.setUserVariable ("picked", pickedSet);
 this.setUserVariable ("pickedList", pickedList);
 }if (atomIndex < 0) return;
 JS.SV.getBitSet (pickedSet, false).set (atomIndex);
-var p = pickedList.pushPop (null);
-if (p.tok == 10) pickedList.pushPop (p);
-if (p.tok != 10 || !(p.value).get (atomIndex)) pickedList.pushPop (JS.SV.newV (10, JU.BSUtil.newAndSetBit (atomIndex)));
+var p = pickedList.pushPop (null, null);
+if (p.tok == 10) pickedList.pushPop (p, null);
+if (p.tok != 10 || !(p.value).get (atomIndex)) pickedList.pushPop (JS.SV.newV (10, JU.BSUtil.newAndSetBit (atomIndex)), null);
 }, "~N");
 Clazz.defineMethod (c$, "resolveDataBase", 
 function (database, id) {

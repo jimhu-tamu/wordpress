@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JV");
-Clazz.load (["javajs.api.BytePoster", "java.util.Hashtable"], "JV.FileManager", ["java.io.BufferedInputStream", "$.BufferedReader", "java.lang.Boolean", "java.net.URL", "$.URLEncoder", "JU.AU", "$.Base64", "$.Lst", "$.PT", "$.Rdr", "$.SB", "J.api.Interface", "J.io.FileReader", "$.JmolBinary", "JU.Logger", "$.Txt", "JV.Viewer"], function () {
+Clazz.load (["javajs.api.BytePoster", "java.util.Hashtable"], "JV.FileManager", ["java.io.BufferedInputStream", "$.BufferedReader", "java.lang.Boolean", "java.net.URL", "$.URLEncoder", "java.util.Map", "JU.AU", "$.BArray", "$.Base64", "$.Lst", "$.PT", "$.Rdr", "$.SB", "J.api.Interface", "J.io.FileReader", "$.JmolBinary", "JS.SV", "JU.Logger", "$.Txt", "JV.Viewer"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.vwr = null;
 this.jmb = null;
@@ -546,7 +546,7 @@ return bdata;
 bdata.put ("_ERROR_", "java.io. Security exception: cannot read file " + data[0]);
 return bdata;
 }}try {
-JU.Rdr.readFileAsMap (t, bdata);
+JU.Rdr.readFileAsMap (t, bdata, name);
 } catch (e) {
 if (Clazz.exceptionOf (e, Exception)) {
 bdata.clear ();
@@ -587,15 +587,31 @@ if (f.lastIndexOf (":/") == pt - 1 || f.indexOf ("/.") >= 0 || f.lastIndexOf ('.
 return true;
 }, "~S");
 Clazz.defineMethod (c$, "loadImage", 
-function (name, echoName) {
-var names = this.getClassifiedName (name, true);
-var nameOrError = (names == null ? "cannot read file name: " + name : names[0].$replace ('\\', '/'));
-var image = (names == null ? null : this.jmb.getImage (this.vwr, nameOrError, echoName));
+function (nameOrBytes, echoName) {
+var image = null;
+var nameOrError = null;
+var bytes = null;
+if (Clazz.instanceOf (nameOrBytes, java.util.Map)) {
+if ((nameOrBytes).containsKey ("_DATA_")) nameOrBytes = (nameOrBytes).get ("_DATA_");
+ else nameOrBytes = (nameOrBytes).get ("_IMAGE_");
+}if (Clazz.instanceOf (nameOrBytes, JS.SV)) nameOrBytes = (nameOrBytes).value;
+var name = (Clazz.instanceOf (nameOrBytes, String) ? nameOrBytes : null);
+if (name != null && name.startsWith (";base64,")) {
+bytes = JU.Base64.decodeBase64 (name);
+} else if (Clazz.instanceOf (nameOrBytes, JU.BArray)) {
+bytes = (nameOrBytes).data;
+} else {
+var names = this.getClassifiedName (nameOrBytes, true);
+nameOrError = (names == null ? "cannot read file name: " + nameOrBytes : names[0].$replace ('\\', '/'));
+if (names != null) image = this.jmb.getImage (this.vwr, nameOrError, echoName);
+}if (bytes != null) image = this.jmb.getImage (this.vwr, bytes, echoName);
 if (Clazz.instanceOf (image, String)) {
 nameOrError = image;
 image = null;
-}if (!this.vwr.isJS) this.vwr.loadImageData (image, nameOrError, echoName, null);
-}, "~S,~S");
+}if (!this.vwr.isJS) {
+if (image != null && bytes != null) nameOrError = ";base64," + JU.Base64.getBase64 (bytes).toString ();
+this.vwr.loadImageData (image, nameOrError, echoName, null);
+}}, "~O,~S");
 c$.urlTypeIndex = Clazz.defineMethod (c$, "urlTypeIndex", 
 function (name) {
 if (name == null) return -2;

@@ -31,13 +31,12 @@ this.lastSpaceGroupName = null;
 this.modulated = false;
 this.lookingForPDB = true;
 this.isCourseGrained = false;
+this.haveCellWaveVector = false;
 this.latticeType = null;
 this.modDim = 0;
 this.htGroup1 = null;
 this.nAtoms0 = 0;
-this.parentCell = null;
-this.standardCell = null;
-this.convCell = null;
+this.htCellTypes = null;
 this.htAudit = null;
 this.symops = null;
 this.key = null;
@@ -90,6 +89,7 @@ this.latticeCells[2] = 1;
 }this.checkSpecial = !this.checkFilterKey ("NOSPECIAL");
 this.asc.setCheckSpecial (this.checkSpecial);
 this.allowRotations = !this.checkFilterKey ("NOSYM");
+if (this.altCell != null && this.altCell.indexOf (",") >= 0) this.addCellType ("conventional", this.altCell, true);
 this.readCifData ();
 this.continuing = false;
 });
@@ -106,8 +106,10 @@ while ((this.key = this.parser.peekToken ()) != null) if (!this.readAllData ()) 
 Clazz.defineMethod (c$, "readAllData", 
  function () {
 if (this.key.startsWith ("data_")) {
-if (this.iHaveDesiredModel) return false;
 this.newModel (++this.modelNumber);
+if (this.iHaveDesiredModel) return false;
+this.haveCellWaveVector = false;
+if (this.auditBlockCode == null) this.modulated = false;
 if (!this.skipping) {
 this.nAtoms0 = this.asc.ac;
 this.processDataParameter ();
@@ -172,18 +174,22 @@ this.appendLoadNote ("TITLE: " + this.parser.fullTrim (this.data) + "\n");
 Clazz.defineMethod (c$, "processUnitCellTransform", 
  function () {
 this.data = JU.PT.replaceAllCharacters (this.data, " ", "");
-if (this.key.contains ("_from_parent")) {
-this.parentCell = "!" + this.data;
-if ("parent".equalsIgnoreCase (this.altCell)) {
-this.altCell = this.parentCell;
-this.convCell = this.data;
-}} else if (this.key.contains ("_to_standard")) {
-this.standardCell = this.data;
-if ("standard".equalsIgnoreCase (this.altCell)) {
-this.altCell = this.standardCell;
-this.convCell = "!" + this.data;
-}}this.appendLoadNote (this.key + ": " + this.data);
+if (this.key.contains ("_from_parent")) this.addCellType ("parent", this.data, true);
+ else if (this.key.contains ("_to_standard")) this.addCellType ("standard", this.data, false);
+this.appendLoadNote (this.key + ": " + this.data);
 });
+Clazz.defineMethod (c$, "addCellType", 
+ function (type, data, isFrom) {
+if (this.htCellTypes == null) this.htCellTypes =  new java.util.Hashtable ();
+if (data.startsWith ("!")) {
+data = data.substring (1);
+isFrom = !isFrom;
+}var cell = (isFrom ? "!" : "") + data;
+this.htCellTypes.put (type, cell);
+if (type.equalsIgnoreCase (this.altCell)) {
+this.altCell = cell;
+this.htCellTypes.put ("conventional", (isFrom ? "" : "!") + data);
+}}, "~S,~S,~B");
 Clazz.defineMethod (c$, "readSingleAtom", 
  function () {
 var atom =  new J.adapter.smarter.Atom ();
@@ -228,10 +234,14 @@ return;
 this.thisStructuralFormula = "";
 this.thisFormula = "";
 if (this.isCourseGrained) this.asc.setAtomSetAuxiliaryInfo ("courseGrained", Boolean.TRUE);
-if (this.nAtoms0 == this.asc.ac) this.asc.removeCurrentAtomSet ();
- else this.applySymmetryAndSetTrajectory ();
+if (this.nAtoms0 == this.asc.ac) {
+this.modelNumber--;
+this.haveModel = false;
+this.asc.removeCurrentAtomSet ();
+} else {
+this.applySymmetryAndSetTrajectory ();
 this.iHaveDesiredModel = this.isLastModel (this.modelNumber);
-}, "~N");
+}}, "~N");
 Clazz.overrideMethod (c$, "finalizeReader", 
 function () {
 if (this.pr != null) this.pr.finalizeReader (this.nAtoms);
@@ -257,19 +267,19 @@ if (this.isMagCIF) {
 this.vibsFractional = true;
 var params = this.asc.xtalSymmetry.symmetry.getNotionalUnitCell ();
 var ptScale = JU.P3.new3 (1 / params[0], 1 / params[1], 1 / params[2]);
-for (var i = this.asc.ac; --i >= this.nAtoms0; ) if (this.asc.atoms[i].vib != null) this.asc.atoms[i].vib.scaleT (ptScale);
-
+for (var i = this.asc.ac; --i >= this.nAtoms0; ) if (this.asc.atoms[i].vib != null) {
+this.asc.atoms[i].vib.scaleT (ptScale);
+}
 }});
 Clazz.overrideMethod (c$, "applySymmetryAndSetTrajectory", 
 function () {
 if (this.isPDB) this.asc.setCheckSpecial (false);
 var doCheckBonding = this.doCheckUnitCell && !this.isPDB;
-if (this.altCell == null) {
-if (this.parentCell != null) this.asc.setAtomSetAuxiliaryInfo ("unitcell_parent", this.parentCell);
-if (this.standardCell != null) this.asc.setAtomSetAuxiliaryInfo ("unitcell_standard", this.standardCell);
-} else if (this.convCell != null) {
-this.asc.setAtomSetAuxiliaryInfo ("unitcell_conventional", this.convCell);
-}this.parentCell = this.standardCell = null;
+if (this.htCellTypes != null) {
+for (var e, $e = this.htCellTypes.entrySet ().iterator (); $e.hasNext () && ((e = $e.next ()) || true);) this.asc.setAtomSetAuxiliaryInfo ("unitcell_" + e.getKey (), e.getValue ());
+
+this.htCellTypes = null;
+}if (!this.haveCellWaveVector) this.modDim = 0;
 var sym = this.applySymTrajASCR ();
 if (this.modDim > 0) {
 this.addLatticeVectors ();
@@ -277,7 +287,7 @@ this.asc.setTensors ();
 this.getModulationReader ().setModulation (true);
 this.mr.finalizeModulation ();
 }if (this.isMagCIF && sym != null) {
-this.addJmolScript ("connect none;vectors on;vectors 0.15");
+this.addJmolScript ("connect none;vectors on;vectors 0.15;");
 var n = this.asc.getXSymmetry ().setVibVectors ();
 this.appendLoadNote (n + " magnetic moments - use VECTORS ON/OFF or VECTOR SCALE x.x or SELECT VXYZ>0");
 }if (this.auditBlockCode != null && this.auditBlockCode.contains ("REFRNCE") && sym != null) {
@@ -811,9 +821,10 @@ if (this.allowRotations || timeRev != 0 || ++n == 1) if (!this.modulated || ssgo
 if (tok == 4) {
 timeRev = (this.field.endsWith (",+1") ? 1 : this.field.endsWith (",-1") ? -1 : 0);
 if (timeRev != 0) this.field = this.field.substring (0, this.field.length - 3);
-}this.symops.addLast (this.field);
-var op = this.setSymmetryOperator (this.field);
-if (op >= 0 && timeRev != 0) this.asc.getXSymmetry ().setTimeReversal (op, timeRev);
+}if (timeRev != 0) this.field += ",m" + (timeRev == 1 ? "+1" : "-1");
+this.field = this.field.$replace (';', ' ');
+this.symops.addLast (this.field);
+this.setSymmetryOperator (this.field);
 }break;
 }
 }

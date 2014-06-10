@@ -3,28 +3,34 @@
 class jsMol2wp{
 	
 	var $fileURL = '';
+	var $instance = 0;
+	var $acc = '';
+	var $type = '';
 	
-	function __construct($pdb){
+	public function __construct($acc, $type, $fileURL){
 		$this->path = plugins_url().'/jsmol2wp/';
-		$this->pdb = $pdb;
+		$this->acc = $acc;
+		$this->type = $type;
 		# determine the instance if there are multiple copies
 		# of the shortcode in the post
-		preg_match_all('/\[jsmol (.*)\]/U', get_the_content(), $m);
+		preg_match_all('/\[jsmol (.*)\]/Us', get_the_content(), $m);
 		foreach($m[1] as $i => $match){
-			if(stripos($match, $pdb) > 0) $this->instance = $i;
+			if(stripos($match, $acc) > 0) $this->instance = $i;
 		}
-		$attachment = get_page_by_title($pdb, OBJECT, 'attachment' );
-		if(!is_null($attachment) && isset($attachment->guid)){
-			$this->fileURL = $attachment->guid;
+		if($fileURL != ''){
+			# use a passed url if it's there
+			$this->fileURL = $fileURL;
+		}else{	
+			# otherwise, look for an attachment
+			$attachment = get_page_by_title($acc, OBJECT, 'attachment' );
+			if(!is_null($attachment) && isset($attachment->guid)){
+				$this->fileURL = $attachment->guid;
+			}
 		}
 	}
-	# this seems to be needed for reasons I don't understand.
-	function jsMol2wp(){
-	
-	}
 	
 	
-	function makeViewer($pdb, $caption, $commands, $wrap, $debug){
+	function makeViewer($acc, $type, $caption, $commands, $wrap, $debug){
 		# variables substitution to handle multiple viewers on the same 
 		# post/page
 		$applet = "jmolApplet".$this->instance;
@@ -32,15 +38,16 @@ class jsMol2wp{
 		$html = "";
 		$template = $this->getTemplate();
 		$template = str_replace('jmolApplet0',$applet, $template );
-		$template = str_replace('1crn',$pdb, $template );
+		$template = str_replace('1crn',$acc, $template );
+		$template = str_replace('XXXX',$acc, $template );
 		$template = str_replace('__caption__',$caption, $template );
 		$template = $this->makeScriptButtons($commands, $template, $wrap);
-		# look for a path to a local pdb file
+		# look for a path to a local data file
 		if($this->fileURL != ''){
 			$template = str_replace(
-					'http://www.rcsb.org/pdb/files/XXXX.pdb',
+					"http://www.rcsb.org/pdb/files/$acc.pdb",
 					$this->fileURL, $template);
-		}elseif(!isset($pdb) || $pdb == ''){
+		}elseif(!isset($acc) || $acc  == ''){
 			$html = "Please specify the name of an uploaded .pdb file";
 		}
 		$html .= $template;
@@ -99,7 +106,7 @@ jmolButton("color structure");
 jmolButton("trace only");
 jmolButton("cartoon only");
 jmolButton("backbone only");
-jmolButton("spacefill only;spacefill 23%;wireframe 0.15","ball&stick");');
+jmolButton("spacefill 23%;wireframe 0.15","ball&stick");');
 		foreach($stdButtons as $i => $button){
 			if($i%$wrap == 0) $str .= "jmolBr();\n";
 			$str .= $button;
@@ -109,8 +116,21 @@ jmolButton("spacefill only;spacefill 23%;wireframe 0.15","ball&stick");');
 	
 	function getTemplate(){
 		$template = file_get_contents(dirname(__FILE__).'/jsmol_template.htm');
+		switch ($this->type){
+			case 'mol':
+				#change the default load coloring and display
+				$template = str_replace(
+					"	+'spacefill off;wireframe off;cartoons on;color structure;spin off;'",
+					"	+'spacefill 23%;wireframe 0.15;color cpk;spin off;'", 
+					$template);
+				break;
+			case 'mrc':
+				return "Support for binary type: $this->type is not implemented yet";
+				break;
+			default:
+		}	
 		$template = str_replace('http://chemapps.stolaf.edu/jmol/jsmol/',$this->path, $template );
-		$template = str_replace('__j2s__',$this->path."/j2s", $template );
+		$template = str_replace('__j2s__',$this->path."j2s", $template );
 		$template = str_replace('__help__', "<a href='$this->path/help.htm'>About/Help</a>", $template );
 		return $template;
 	}
@@ -127,7 +147,7 @@ jmolButton("spacefill only;spacefill 23%;wireframe 0.15","ball&stick");');
 			'package.js' => "$this->path/j2s/core/"
 		);
 		foreach($fileTests as $file => $path){
-			if(!file_get_contents("$path$file")){ 
+			if(!wp_remote_fopen("$path$file")){ 
 				$str .= "can't load $path$file\n";
 			}else{
 				$str .= "$file load OK\n";
@@ -135,6 +155,10 @@ jmolButton("spacefill only;spacefill 23%;wireframe 0.15","ball&stick");');
 		}
 		$str .= 'file_get_contents: ';
 		$str .=  file_get_contents(__FILE__) ? 'Enabled' : 'Disabled';
+		$str .= "\npath to uploaded file:".$this->fileURL."\n";
+		$attachment = get_page_by_title($this->acc, OBJECT, 'attachment' );
+		if(is_null($attachment)) $str .= "attachment for $this->acc not found\n";
+		$str .= "attachment:".print_r($attachment,true);
 		$str .= "</pre>";
 		return $str;
 	}

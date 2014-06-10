@@ -215,6 +215,7 @@ if (!map.isEmpty ()) this.htModulation.putAll (map);
 if (this.htSubsystems == null) {
 this.haveAtomMods = false;
 } else {
+this.cr.altCell = null;
 this.haveAtomMods = true;
 this.htAtomMods =  new java.util.Hashtable ();
 }for (var e, $e = this.htModulation.entrySet ().iterator (); $e.hasNext () && ((e = $e.next ()) || true);) {
@@ -497,8 +498,10 @@ pt.setT (a);
 if (a.vib != null) pt.add (a.vib);
 this.getSymmetry (a).toCartesian (pt, false);
 sym.toFractional (pt, false);
-if (!asc.xtalSymmetry.isWithinCell (3, pt, this.minXYZ0.x, this.maxXYZ0.x, this.minXYZ0.y, this.maxXYZ0.y, this.minXYZ0.z, this.maxXYZ0.z, 0.001) || this.isCommensurate && !this.modAverage && a.foccupancy < 0.5) bs.clear (i);
-}
+if (!asc.xtalSymmetry.isWithinCell (3, pt, this.minXYZ0.x, this.maxXYZ0.x, this.minXYZ0.y, this.maxXYZ0.y, this.minXYZ0.z, this.maxXYZ0.z, 0.001) || this.isCommensurate && !this.modAverage && a.foccupancy < 0.5) {
+System.out.println (a.atomName + " " + a + " " + pt);
+bs.clear (i);
+}}
 });
 Clazz.defineMethod (c$, "getDefaultUnitCell", 
  function () {

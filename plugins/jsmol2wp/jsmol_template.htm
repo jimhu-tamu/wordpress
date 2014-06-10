@@ -1,4 +1,4 @@
-
+<div class = 'jsmol2wp'>
 <script type="text/javascript">
 
 // 1/21/2013 10:54:15 PM -- adds image handling
@@ -24,9 +24,13 @@ jmol_isReady = function(applet) {
 }		
 
 var xxxx = document.location.search
-if (xxxx.indexOf("_USE=") > 0)xxxx = xxxx.substring(0, xxxx.indexOf("_USE=") - 1);
-if (xxxx.length == 5 || xxxx.length == 0) { 
-	xxxx = (xxxx + "?1crn").substring(1,5)
+if (xxxx.indexOf("_USE=") > 0){
+	xxxx = xxxx.substring(0, xxxx.indexOf("_USE=") - 1);
+}else{
+	xxxx = '';
+}	
+if (xxxx.length >= 5 || xxxx.length == 0) { 
+	xxxx = (xxxx + "?1crn").substring(1)
 	script = 'h2oOn=true;set animframecallback "jmolscript:if (!selectionHalos) {select model=_modelNumber}";'
 	+'set errorCallback "myCallback";'
 	+'set defaultloadscript "isDssp = false;set defaultVDW babel;if(!h2oOn){display !water}";'
@@ -103,5 +107,6 @@ Jmol.setButtonCss(null,"style='width:50px'")
 //jmolButton("console")
 //Jmol.jmolCommandInput(jmolApplet0)
 </script>
-<br/>__help__
+<br/>__help__ <a href='http://wiki.jmol.org/index.php/Mouse_Manual'>mouse gestures</a>
 </td></tr></table>
+</div>

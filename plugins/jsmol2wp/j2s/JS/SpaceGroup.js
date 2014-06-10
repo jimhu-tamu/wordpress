@@ -198,7 +198,7 @@ if (sgDerived != null) return sgDerived;
 });
 Clazz.defineMethod (c$, "getDerivedSpaceGroup", 
 function () {
-if (this.index >= 0 && this.index < JS.SpaceGroup.SG.length || this.modDim > 0) return this;
+if (this.index >= 0 && this.index < JS.SpaceGroup.SG.length || this.modDim > 0 || this.operations[0].timeReversal != 0) return this;
 if (this.finalOperations != null) this.setFinalOperations (null, 0, 0, false);
 var s = this.getCanonicalSeitzList ();
 return (s == null ? null : JS.SpaceGroup.findSpaceGroup (s));
@@ -206,10 +206,8 @@ return (s == null ? null : JS.SpaceGroup.findSpaceGroup (s));
 Clazz.defineMethod (c$, "getCanonicalSeitzList", 
  function () {
 var list =  new Array (this.operationCount);
-for (var i = 0; i < this.operationCount; i++) {
-if (this.operations[i].timeReversal != 0) return null;
-list[i] = JS.SymmetryOperation.dumpCanonicalSeitz (this.operations[i]);
-}
+for (var i = 0; i < this.operationCount; i++) list[i] = JS.SymmetryOperation.dumpSeitz (this.operations[i], true);
+
 java.util.Arrays.sort (list, 0, this.operationCount);
 var sb =  new JU.SB ().append ("\n[");
 for (var i = 0; i < this.operationCount; i++) sb.append (list[i].$replace ('\t', ' ').$replace ('\n', ' ')).append ("; ");
@@ -279,6 +277,9 @@ if (xyz0.startsWith ("x1,x2,x3,x4") && this.modDim == 0) {
 this.xyzList.clear ();
 this.operationCount = 0;
 this.modDim = JU.PT.parseInt (xyz0.substring (xyz0.lastIndexOf ("x") + 1)) - 3;
+} else if (xyz0.equals ("x,y,z,m+1")) {
+this.xyzList.clear ();
+this.operationCount = 0;
 }var op =  new JS.SymmetryOperation (null, null, 0, opId, this.doNormalize);
 if (!op.setMatrixFromXYZ (xyz0, this.modDim, allowScaling)) {
 JU.Logger.error ("couldn't interpret symmetry operation: " + xyz0);
@@ -287,12 +288,16 @@ return -1;
 }, "~S,~N,~B");
 Clazz.defineMethod (c$, "addOp", 
  function (op, xyz0, isSpecial) {
-var xyz = op.xyz;
+var ext = "";
+var xyz = op.xyz + ext;
+var xxx = JU.PT.replaceAllCharacters (xyz, "+123/", "");
 if (!isSpecial) {
 if (this.xyzList.containsKey (xyz)) return this.xyzList.get (xyz).intValue ();
-if (this.latticeOp < 0 && this.xyzList.containsKey (JU.PT.replaceAllCharacters (xyz, "+123/", ""))) this.latticeOp = this.operationCount;
-this.xyzList.put (xyz, Integer.$valueOf (this.operationCount));
-}if (xyz != null && !xyz.equals (xyz0)) this.xyzList.put (xyz0, Integer.$valueOf (this.operationCount));
+if (this.latticeOp < 0) {
+if (this.xyzList.containsKey (xxx)) this.latticeOp = this.operationCount;
+ else this.xyzList.put (xxx, Integer.$valueOf (this.operationCount));
+}this.xyzList.put (xyz, Integer.$valueOf (this.operationCount));
+}if (!xyz.equals (xyz0 + ext)) this.xyzList.put (xyz0 + ext, Integer.$valueOf (this.operationCount));
 if (this.operations == null) this.operations =  new Array (4);
 if (this.operationCount == this.operations.length) this.operations = JU.AU.arrayCopyObject (this.operations, this.operationCount * 2);
 this.operations[this.operationCount++] = op;

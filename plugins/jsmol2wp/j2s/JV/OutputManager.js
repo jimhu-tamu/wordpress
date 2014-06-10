@@ -27,7 +27,7 @@ if (!this.vwr.checkPrivateKey (this.privateKey)) return "ERROR: SECURITY";
 if (bytes != null) {
 if (out == null) out = this.openOutputChannel (this.privateKey, fileName, false, false);
 out.write (bytes, 0, bytes.length);
-} else if (text != null && !type.equals ("ZIPDATA")) {
+} else if (text != null && !type.equals ("ZIPDATA") && !type.equals ("BINARY")) {
 if (out == null) out = this.openOutputChannel (this.privateKey, fileName, true, false);
 out.append (text);
 } else {
@@ -63,7 +63,7 @@ var out = params.get ("outputChannel");
 var asBytes = (out == null && fileName == null);
 var closeChannel = (out == null && fileName != null);
 var releaseImage = (objImage == null);
-var image = (type.equals ("ZIPDATA") ? "" : rgbbuf != null ? rgbbuf : objImage != null ? objImage : this.vwr.getScreenImageBuffer (null, true));
+var image = (type.equals ("BINARY") || type.equals ("ZIPDATA") ? "" : rgbbuf != null ? rgbbuf : objImage != null ? objImage : this.vwr.getScreenImageBuffer (null, true));
 var isOK = false;
 try {
 if (image == null) return errMsg = this.vwr.getErrorMessage ();
@@ -135,7 +135,7 @@ return s;
 Clazz.defineMethod (c$, "createTheImage", 
  function (objImage, type, out, params, errRet) {
 type = type.substring (0, 1) + type.substring (1).toLowerCase ();
-if (type.equals ("Zipdata")) {
+if (type.equals ("Zipdata") || type.equals ("Binary")) {
 var v = params.get ("imageData");
 if (v.size () >= 2 && v.get (0).equals ("_IMAGE_")) {
 objImage = null;

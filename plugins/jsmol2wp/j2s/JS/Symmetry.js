@@ -143,7 +143,7 @@ return JS.SymmetryOperation.getMatrixFromString (null, xyz, rotTransMatrix, allo
 }, "~S,~A,~B,~N");
 Clazz.defineMethod (c$, "getSpaceGroupName", 
 function () {
-return (this.symmetryInfo != null ? this.symmetryInfo.sgName : this.spaceGroup != null ? this.spaceGroup.getName () : "");
+return (this.symmetryInfo != null ? this.symmetryInfo.sgName : this.spaceGroup != null ? this.spaceGroup.getName () : this.unitCell != null && this.unitCell.name.length > 0 ? "cell=" + this.unitCell.name : "");
 });
 Clazz.overrideMethod (c$, "getSpaceGroupOperationCount", 
 function () {
@@ -309,10 +309,11 @@ function () {
 return this.unitCell.getUnitCellVectors ();
 });
 Clazz.overrideMethod (c$, "getUnitCell", 
-function (points, setRelative) {
+function (points, setRelative, name) {
 this.unitCell = JS.UnitCell.newP (points, setRelative);
+if (name != null) this.unitCell.name = name;
 return this;
-}, "~A,~B");
+}, "~A,~B,~S");
 Clazz.overrideMethod (c$, "isSupercell", 
 function () {
 return this.unitCell.isSupercell ();
@@ -362,12 +363,13 @@ if (centroidPacked) return (center.x + 0.000005 <= minmax[0] || center.x - 0.000
 return (center.x + 0.000005 <= minmax[0] || center.x + 0.00005 > minmax[3] || center.y + 0.000005 <= minmax[1] || center.y + 0.00005 > minmax[4] || center.z + 0.000005 <= minmax[2] || center.z + 0.00005 > minmax[5]);
 }, "JU.P3,~N,~A,~B");
 Clazz.overrideMethod (c$, "getSpaceGroupInfo", 
-function (modelSet, modelIndex, spaceGroup, symOp, pt1, pt2, drawID, type) {
+function (modelSet, modelIndex, sgName, symOp, pt1, pt2, drawID, type) {
 var strOperations = null;
 var info = null;
 var cellInfo = null;
 var infolist = null;
-if (spaceGroup == null) {
+var isStandard = true;
+if (sgName == null) {
 if (modelIndex <= 0) modelIndex = (Clazz.instanceOf (pt1, JM.Atom) ? (pt1).mi : modelSet.vwr.am.cmi);
 var isBio = false;
 if (modelIndex < 0) strOperations = "no single current model";
@@ -381,41 +383,47 @@ info = modelSet.getInfo (modelIndex, "spaceGroupInfo");
 }if (info != null) return info;
 info =  new java.util.Hashtable ();
 if (pt1 == null && drawID == null && symOp == 0) modelSet.setInfo (modelIndex, "spaceGroupInfo", info);
-spaceGroup = cellInfo.getSpaceGroupName ();
+sgName = cellInfo.getSpaceGroupName ();
 var ops = cellInfo.getSymmetryOperations ();
 var sg = (isBio ? (cellInfo).spaceGroup : null);
 var jf = "";
 if (ops == null) {
-strOperations = "\n no symmetry operations employed";
+strOperations = "\n no symmetry operations";
 } else {
+isStandard = !isBio;
 if (isBio) this.spaceGroup = (JS.SpaceGroup.getNull (false)).set (false);
  else this.setSpaceGroup (false);
-strOperations = "\n" + ops.length + " symmetry operations employed:";
+strOperations = "\n" + ops.length + " symmetry operations:";
 infolist =  new Array (ops.length);
 var centering = null;
 for (var i = 0; i < ops.length; i++) {
-var xyz = (ops[i]).xyz;
+var op = (ops[i]);
+var xyz = op.xyz;
 var iop = (isBio ? this.addBioMoleculeOperation (sg.finalOperations[i], false) : this.addSpaceGroupOperation ("=" + xyz, i + 1));
 if (iop < 0) continue;
-var op = this.getSpaceGroupOperation (i);
+op = this.getSpaceGroupOperation (i);
+if (op.timeReversal != 0 || op.modDim > 0) isStandard = false;
 centering = op.setCentering (centering, false);
 jf += ";" + xyz;
 infolist[i] = (symOp > 0 && symOp - 1 != iop ? null : op.getDescription (modelSet, cellInfo, pt1, pt2, drawID));
 if (infolist[i] != null) strOperations += "\n" + (i + 1) + "\t" + infolist[i][0] + "\t" + infolist[i][2];
 }
 }jf = jf.substring (jf.indexOf (";") + 1);
-if (spaceGroup.indexOf ("[--]") >= 0) spaceGroup = jf;
+if (sgName.indexOf ("[--]") >= 0) sgName = jf;
 } else {
 info =  new java.util.Hashtable ();
-}info.put ("spaceGroupName", spaceGroup);
+}info.put ("spaceGroupName", sgName);
 if (infolist != null) {
 info.put ("operations", infolist);
 info.put ("symmetryInfo", strOperations);
-}if (!spaceGroup.startsWith ("bio")) {
-var data = this.getSpaceGroupInfoStr (spaceGroup, cellInfo);
-if (data == null || data.equals ("?")) data = "could not identify space group from name: " + spaceGroup + "\nformat: show spacegroup \"2\" or \"P 2c\" " + "or \"C m m m\" or \"x, y, z;-x ,-y, -z\"";
-info.put ("spaceGroupInfo", data);
-}return info;
+}var data;
+if (isStandard) {
+data = this.getSpaceGroupInfoStr (sgName, cellInfo);
+if (data == null || data.equals ("?")) data = "could not identify space group from name: " + sgName + "\nformat: show spacegroup \"2\" or \"P 2c\" " + "or \"C m m m\" or \"x, y, z;-x ,-y, -z\"";
+} else {
+data = sgName;
+}info.put ("spaceGroupInfo", data);
+return info;
 }, "JM.ModelSet,~N,~S,~N,JU.P3,JU.P3,~S,~S");
 Clazz.overrideMethod (c$, "getSymmetryInfoString", 
 function (modelSet, modelIndex, symOp, pt1, pt2, drawID, type) {

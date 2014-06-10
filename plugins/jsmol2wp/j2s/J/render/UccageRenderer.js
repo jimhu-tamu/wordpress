@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.render");
-Clazz.load (["J.render.CageRenderer", "JU.P3"], "J.render.UccageRenderer", ["JU.DF", "JU.BoxInfo", "$.C", "$.SimpleUnitCell"], function () {
+Clazz.load (["J.render.CageRenderer", "JU.P3"], "J.render.UccageRenderer", ["JU.DF", "$.PT", "JU.BoxInfo", "$.C", "$.SimpleUnitCell"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.fid = 0;
 this.verticesT = null;
@@ -108,18 +108,20 @@ return (JU.DF.formatDecimal (x, 3));
 }, "~N");
 Clazz.defineMethod (c$, "renderInfo", 
  function (symmetry) {
-if (this.isExport || !this.g3d.setC (this.vwr.getColixBackgroundContrast ())) return;
+if (this.isExport || !this.g3d.setC (this.vwr.getColixBackgroundContrast ()) || !this.vwr.getBoolean (603979938)) return;
 this.fid = this.g3d.getFontFidFS ("Monospaced", 14 * this.imageFontScaling);
 this.g3d.setFontFid (this.fid);
 var lineheight = Clazz.doubleToInt (Math.floor (15 * this.imageFontScaling));
 var x = Clazz.doubleToInt (Math.floor (5 * this.imageFontScaling));
 var y = lineheight;
-var spaceGroup = symmetry.getSpaceGroupName ();
-if (this.isPolymer) spaceGroup = "polymer";
- else if (this.isSlab) spaceGroup = "slab";
-if ( new Boolean (spaceGroup != null & !spaceGroup.equals ("-- [--]")).valueOf ()) {
+var sgName = symmetry.getSpaceGroupName ();
+if (this.isPolymer) sgName = "polymer";
+ else if (this.isSlab) sgName = "slab";
+ else if (sgName != null && sgName.startsWith ("cell=!")) sgName = "cell=inverse[" + sgName.substring (6) + "]";
+sgName = JU.PT.rep (sgName, ";0,0,0", "");
+if ( new Boolean (sgName != null & !sgName.equals ("-- [--]")).valueOf ()) {
 y += lineheight;
-this.g3d.drawStringNoSlab (spaceGroup, null, x, y, 0, 0);
+this.g3d.drawStringNoSlab (sgName, null, x, y, 0, 0);
 }var info = symmetry.getMoreInfo ();
 if (info != null) for (var i = 0; i < info.size (); i++) {
 y += lineheight;

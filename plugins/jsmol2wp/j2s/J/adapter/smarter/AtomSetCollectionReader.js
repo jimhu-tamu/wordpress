@@ -283,7 +283,9 @@ if (this.htParams.containsKey ("vibrationNumber")) this.desiredVibrationNumber =
 this.applySymmetryToBonds = this.htParams.containsKey ("applySymmetryToBonds");
 this.bsFilter = this.htParams.get ("bsFilter");
 this.setFilter (null);
-var ptFile = (this.htParams.containsKey ("ptFile") ? (this.htParams.get ("ptFile")).intValue () : -1);
+if (this.altCell != null) {
+if (!this.checkFilterKey ("NOPACK")) this.forcePacked = true;
+}var ptFile = (this.htParams.containsKey ("ptFile") ? (this.htParams.get ("ptFile")).intValue () : -1);
 this.isTrajectory = this.htParams.containsKey ("isTrajectory");
 if (ptFile > 0 && this.htParams.containsKey ("firstLastSteps")) {
 var val = (this.htParams.get ("firstLastSteps")).get (ptFile - 1);
@@ -335,7 +337,7 @@ function () {
 this.latticeCells =  Clazz.newIntArray (3, 0);
 this.doApplySymmetry = false;
 var pt = this.htParams.get ("lattice");
-if (pt == null) {
+if (pt == null || pt.length () == 0) {
 if (!this.forcePacked) return;
 pt = JU.P3.new3 (1, 1, 1);
 }this.latticeCells[0] = Clazz.floatToInt (pt.x);
@@ -514,22 +516,21 @@ this.addVibrations = !this.checkFilterKey ("NOVIB");
 this.doReadMolecularOrbitals = !this.checkFilterKey ("NOMO");
 this.useAltNames = this.checkFilterKey ("ALTNAME");
 this.reverseModels = this.checkFilterKey ("REVERSEMODELS");
+if (this.filter == null) return;
 if (this.checkFilterKey ("HETATM")) {
 this.filterHetero = true;
 this.filter = JU.PT.rep (this.filter, "HETATM", "HETATM-Y");
 }if (this.checkFilterKey ("ATOM")) {
 this.filterHetero = true;
 this.filter = JU.PT.rep (this.filter, "ATOM", "HETATM-N");
-}if (this.checkFilterKey ("NAME=")) {
-this.nameRequired = this.filter.substring (this.filter.indexOf ("NAME=") + 5);
+}if (this.checkFilterKey ("CELL=")) this.altCell = this.filter.substring (this.filter.indexOf ("CELL=") + 5).toLowerCase ();
+this.nameRequired = JU.PT.getQuotedAttribute (this.filter, "NAME");
+if (this.nameRequired != null) {
 if (this.nameRequired.startsWith ("'")) this.nameRequired = JU.PT.split (this.nameRequired, "'")[1];
  else if (this.nameRequired.startsWith ("\"")) this.nameRequired = JU.PT.split (this.nameRequired, "\"")[1];
 filter0 = this.filter = JU.PT.rep (this.filter, this.nameRequired, "");
 filter0 = this.filter = JU.PT.rep (this.filter, "NAME=", "");
-}if (this.checkFilterKey ("CELL=")) {
-this.altCell = filter0.substring (this.filter.indexOf ("CELL=") + 5).toLowerCase ();
-}if (this.filter == null) return;
-this.filterAtomName = this.checkFilterKey ("*.") || this.checkFilterKey ("!.");
+}this.filterAtomName = this.checkFilterKey ("*.") || this.checkFilterKey ("!.");
 this.filterElement = this.checkFilterKey ("_");
 this.filterGroup3 = this.checkFilterKey ("[");
 this.filterChain = this.checkFilterKey (":");

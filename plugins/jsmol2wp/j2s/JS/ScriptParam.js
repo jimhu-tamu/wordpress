@@ -468,7 +468,7 @@ default:
 if (nPoints >= 0 && n == nPoints) {
 tok = 0;
 break;
-}var pt = this.getPoint3f (i, true);
+}var pt = this.centerParameter (i);
 if (points == null) vp.addLast (pt);
  else points[n] = pt;
 n++;

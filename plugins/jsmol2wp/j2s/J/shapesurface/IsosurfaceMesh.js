@@ -573,7 +573,7 @@ return ipt;
 }, "JU.MeshSurface,~N,~N,~A");
 Clazz.overrideMethod (c$, "getUnitCell", 
 function () {
-return (this.spanningVectors == null ? null : J.api.Interface.getSymmetry ().getUnitCell (this.spanningVectors, true));
+return (this.spanningVectors == null ? null : J.api.Interface.getSymmetry ().getUnitCell (this.spanningVectors, true, null));
 });
 Clazz.overrideMethod (c$, "slabBrillouin", 
 function (unitCellPoints) {

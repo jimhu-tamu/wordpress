@@ -297,9 +297,9 @@ function () {
 return (JU.Rdr.jzt == null ? JU.Rdr.jzt = javajs.api.Interface.getInterface ("JU.ZipTools") : JU.Rdr.jzt);
 });
 c$.readFileAsMap = Clazz.defineMethod (c$, "readFileAsMap", 
-function (is, bdata) {
-JU.Rdr.getJzt ().readFileAsMap (is, bdata);
-}, "java.io.BufferedInputStream,java.util.Map");
+function (is, bdata, name) {
+JU.Rdr.getJzt ().readFileAsMap (is, bdata, name);
+}, "java.io.BufferedInputStream,java.util.Map,~S");
 c$.getZipDirectoryAsStringAndClose = Clazz.defineMethod (c$, "getZipDirectoryAsStringAndClose", 
 function (t) {
 return JU.Rdr.getJzt ().getZipDirectoryAsStringAndClose (t);

@@ -704,7 +704,7 @@ return this.tm.scalePixelsPerAngstrom * (asAntialiased || !this.antialiased ? 1 
 }, "~B");
 Clazz.defineMethod (c$, "setSpin", 
 function (key, value) {
-if (!JU.PT.isOneOf (key, "x;y;z;fps;X;Y;Z;FPS")) return;
+if (!JU.PT.isOneOf (key, ";x;y;z;fps;X;Y;Z;FPS;")) return;
 var i = "x;y;z;fps;X;Y;Z;FPS".indexOf (key);
 switch (i) {
 case 0:
@@ -1894,16 +1894,16 @@ this.shm.getShapePropertyData (24, "unitCell", data);
 this.ms.setModelCage (this.am.cmi, data[1]);
 }, "~S");
 Clazz.defineMethod (c$, "setCurrentCagePts", 
-function (originABC) {
+function (originABC, name) {
 try {
-this.ms.setModelCage (this.am.cmi, originABC == null ? null : J.api.Interface.getSymmetry ().getUnitCell (originABC, false));
+this.ms.setModelCage (this.am.cmi, originABC == null ? null : J.api.Interface.getSymmetry ().getUnitCell (originABC, false, name));
 } catch (e) {
 if (Clazz.exceptionOf (e, Exception)) {
 } else {
 throw e;
 }
 }
-}, "~A");
+}, "~A,~S");
 Clazz.defineMethod (c$, "addUnitCellOffset", 
 function (pt) {
 var unitCell = this.getCurrentUnitCell ();
@@ -2342,12 +2342,12 @@ this.dimScreen.height = height;
 if (!isImageWrite) {
 this.g.setI ("_width", width);
 this.g.setI ("_height", height);
-this.setStatusResized (width, height);
 }} else {
 width = (this.dimScreen.width == 0 ? this.dimScreen.width = 500 : this.dimScreen.width);
 height = (this.dimScreen.height == 0 ? this.dimScreen.height = 500 : this.dimScreen.height);
 }this.tm.setScreenParameters (width, height, isImageWrite || isReset ? this.g.zoomLarge : false, this.antialiased, false, false);
 this.gdata.setWindowParameters (width, height, this.antialiased);
+if (width > 0 && !isImageWrite) this.setStatusResized (width, height);
 }, "~N,~N,~B,~B,~B");
 Clazz.overrideMethod (c$, "getScreenWidth", 
 function () {
@@ -3373,9 +3373,11 @@ case 603979928:
 return this.g.showMultipleBonds;
 case 603979934:
 return this.g.showTiming;
+case 603979938:
+return this.g.showUnitCellInfo;
 case 603979937:
 return this.g.showUnitCellDetails;
-case 603979938:
+case 603979939:
 return this.g.slabByAtom;
 case 603979940:
 return this.g.slabByMolecule;
@@ -4046,6 +4048,9 @@ Clazz.defineMethod (c$, "setBooleanPropertyTok",
  function (key, tok, value) {
 var doRepaint = true;
 switch (tok) {
+case 603979938:
+this.g.showUnitCellInfo = value;
+break;
 case 603979937:
 this.g.showUnitCellDetails = value;
 break;
@@ -4154,7 +4159,7 @@ this.g.strutsMultiple = value;
 break;
 case 603979842:
 break;
-case 603979938:
+case 603979939:
 this.g.slabByAtom = value;
 break;
 case 603979940:
@@ -4607,7 +4612,7 @@ this.axesAreTainted = true;
 }, "~N");
 Clazz.defineMethod (c$, "getAxisPoints", 
 function () {
-return (this.getObjectMad (1) == 0 || this.g.axesMode !== J.c.AXES.UNITCELL || (this.getShapeProperty (31, "axesTypeXY")).booleanValue () || this.getShapeProperty (31, "origin") != null ? null : this.getShapeProperty (31, "axisPoints"));
+return (this.getObjectMad (1) == 0 || this.g.axesMode !== J.c.AXES.UNITCELL || (this.getShapeProperty (33, "axesTypeXY")).booleanValue () || this.getShapeProperty (33, "origin") != null ? null : this.getShapeProperty (33, "axisPoints"));
 });
 Clazz.defineMethod (c$, "resetError", 
 function () {
@@ -4729,7 +4734,7 @@ this.g.showHydrogens = TF;
 }, "~B");
 Clazz.overrideMethod (c$, "setShowBbcage", 
 function (value) {
-this.setObjectMad (32, "boundbox", (value ? -4 : 0));
+this.setObjectMad (31, "boundbox", (value ? -4 : 0));
 this.g.setB ("showBoundBox", value);
 }, "~B");
 Clazz.overrideMethod (c$, "getShowBbcage", 
@@ -4738,7 +4743,7 @@ return this.getObjectMad (4) != 0;
 });
 Clazz.defineMethod (c$, "setShowUnitCell", 
 function (value) {
-this.setObjectMad (33, "unitcell", (value ? -2 : 0));
+this.setObjectMad (32, "unitcell", (value ? -2 : 0));
 this.g.setB ("showUnitCell", value);
 }, "~B");
 Clazz.defineMethod (c$, "getShowUnitCell", 
@@ -4747,7 +4752,7 @@ return this.getObjectMad (5) != 0;
 });
 Clazz.overrideMethod (c$, "setShowAxes", 
 function (value) {
-this.setObjectMad (31, "axes", (value ? -2 : 0));
+this.setObjectMad (33, "axes", (value ? -2 : 0));
 this.g.setB ("showAxes", value);
 }, "~B");
 Clazz.overrideMethod (c$, "getShowAxes", 
@@ -5613,15 +5618,20 @@ var n = this.slm.deleteAtoms (bsAtoms);
 this.setTainted (true);
 this.sm.modifySend (atomIndex, this.ms.at[atomIndex].mi, -4, "OK");
 return n;
-}var modelIndex = this.ms.at[atomIndex].mi;
+}return this.deleteModels (this.ms.at[atomIndex].mi, bsAtoms);
+}, "JU.BS,~B");
+Clazz.defineMethod (c$, "deleteModels", 
+function (modelIndex, bsAtoms) {
+this.clearModelDependentObjects ();
 this.sm.modifySend (-1, modelIndex, 5, "deleting model " + this.getModelNumberDotted (modelIndex));
 this.setCurrentModelIndexClear (0, false);
 this.am.setAnimationOn (false);
 var bsD0 = JU.BSUtil.copy (this.getDeletedAtoms ());
-var bsDeleted = this.ms.deleteModels (bsAtoms);
+var bsModels = (bsAtoms == null ? JU.BSUtil.newAndSetBit (modelIndex) : this.ms.getModelBS (bsAtoms, false));
+var bsDeleted = this.ms.deleteModels (bsModels);
 this.slm.processDeletedModelAtoms (bsDeleted);
-this.setAnimationRange (0, 0);
 if (this.eval != null) this.eval.deleteAtomsInVariables (bsDeleted);
+this.setAnimationRange (0, 0);
 this.clearRepaintManager (-1);
 this.am.clear ();
 this.am.initializePointers (1);
@@ -5632,7 +5642,7 @@ this.refreshMeasures (true);
 if (bsD0 != null) bsDeleted.andNot (bsD0);
 this.sm.modifySend (-1, modelIndex, -5, "OK");
 return JU.BSUtil.cardinalityOf (bsDeleted);
-}, "JU.BS,~B");
+}, "~N,JU.BS");
 Clazz.defineMethod (c$, "deleteBonds", 
 function (bsDeleted) {
 var modelIndex = this.ms.getBondModelIndex (bsDeleted.nextSetBit (0));

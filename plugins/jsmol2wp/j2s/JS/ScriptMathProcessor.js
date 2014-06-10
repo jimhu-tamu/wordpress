@@ -79,7 +79,7 @@ var x = this.xStack[0];
 if (this.chk) {
 if (this.asBitSet) return JS.SV.newV (10,  new JU.BS ());
 return x;
-}if (x.tok == 10 || x.tok == 7 || x.tok == 4 || x.tok == 11 || x.tok == 12) x = JS.SV.selectItemVar (x);
+}if (x.tok == 10 || x.tok == 7 || x.tok == 15 || x.tok == 4 || x.tok == 11 || x.tok == 12) x = JS.SV.selectItemVar (x);
 if (this.asBitSet && x.tok == 7) x = JS.SV.newV (10, JS.SV.unEscapeBitSetArray (x.value, false));
 return x;
 }}if (!this.allowUnderflow && (this.xPt >= 0 || this.oPt >= 0)) this.eval.invArg ();
@@ -478,7 +478,7 @@ if (this.xPt < 0 || this.xPt == 0 && !this.isArrayItem) {
 return false;
 }var var1 = this.xStack[this.xPt--];
 var $var = this.xStack[this.xPt];
-if ($var.tok == 7 && $var.intValue != 2147483647) if (var1.tok == 4 || this.assignLeft && this.squareCount == 1) {
+if (($var.tok == 7 || $var.tok == 15) && $var.intValue != 2147483647) if (var1.tok == 4 || this.assignLeft && this.squareCount == 1) {
 this.xStack[this.xPt] = $var = JS.SV.selectItemTok ($var, -2147483648);
 }if (this.assignLeft && $var.tok != 4) this.lastAssignedString = null;
 switch ($var.tok) {
@@ -494,6 +494,7 @@ this.putOp (null);
 default:
 $var = JS.SV.newS (JS.SV.sValue ($var));
 case 10:
+case 15:
 case 7:
 case 4:
 case 11:
@@ -1209,7 +1210,7 @@ case 128:
 case 160:
 return this.addXObj (this.getMathExt ().getMinMax (x2.getList (), op.intValue));
 case 1276383249:
-return this.addX (x2.pushPop (null));
+return this.addX (x2.pushPop (null, null));
 case 1276117011:
 case 1141899269:
 return this.addX (x2.sortOrReverse (op.intValue == 1141899269 ? -2147483648 : 1));

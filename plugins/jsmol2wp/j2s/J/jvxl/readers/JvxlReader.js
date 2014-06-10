@@ -169,15 +169,24 @@ if (this.jvxlDataIsColorMapped && doSkipColorData) this.jvxlSkipDataBlock (this.
 }, "~N,~B");
 Clazz.defineMethod (c$, "jvxlSkipDataBlock", 
  function (nPoints, isInt) {
-if (isInt) {
-var n;
-while (nPoints > 0) {
-this.next[0] = 0;
-while ((n = this.parseIntNext (this.readLine ())) >= 0) nPoints -= n;
-
+var n = 0;
+while (n < nPoints) {
+this.readLine ();
+n += (isInt ? this.countData (this.line) : J.jvxl.data.JvxlCoder.jvxlDecompressString (this.line).length);
 }
-} else {
-while (nPoints > 0) nPoints -= J.jvxl.data.JvxlCoder.jvxlDecompressString (this.readLine ()).length;
-
-}}, "~N,~B");
+}, "~N,~B");
+Clazz.defineMethod (c$, "countData", 
+ function (str) {
+var $private = Clazz.checkPrivateMethod (arguments);
+if ($private != null) {
+return $private.apply (this, arguments);
+}
+var count = 0;
+var n = this.parseIntStr (str);
+while (n != -2147483648) {
+count += n;
+n = this.parseIntNext (str);
+}
+return count;
+}, "~S");
 });
