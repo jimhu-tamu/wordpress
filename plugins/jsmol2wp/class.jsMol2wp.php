@@ -13,10 +13,11 @@ class jsMol2wp{
 		$this->type = $type;
 		# determine the instance if there are multiple copies
 		# of the shortcode in the post
-		preg_match_all('/\[jsmol (.*)\]/Us', get_the_content(), $m);
-		foreach($m[1] as $i => $match){
+		$m = explode('[jsmol', get_the_content());
+		foreach($m as $i => $match){
 			if(stripos($match, $acc) > 0) $this->instance = $i;
 		}
+		
 		if($fileURL != ''){
 			# use a passed url if it's there
 			$this->fileURL = $fileURL;
@@ -117,11 +118,21 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");');
 	function getTemplate(){
 		$template = file_get_contents(dirname(__FILE__).'/jsmol_template.htm');
 		switch ($this->type){
+			case 'obj':
+				$template = str_replace(
+					"+'load",
+					"+'isosurface OBJ ", 
+					$template);
+				$template = str_replace(
+					"+'spacefill off;wireframe off;cartoons on;color structure;spin off;'",
+					"+'spacefill 23%;wireframe 0.15;color cpk;spin off;'", 
+					$template);
+				break;
 			case 'mol':
 				#change the default load coloring and display
 				$template = str_replace(
-					"	+'spacefill off;wireframe off;cartoons on;color structure;spin off;'",
-					"	+'spacefill 23%;wireframe 0.15;color cpk;spin off;'", 
+					"+'spacefill off;wireframe off;cartoons on;color structure;spin off;'",
+					"+'spacefill 23%;wireframe 0.15;color cpk;spin off;'", 
 					$template);
 				break;
 			case 'mrc':
