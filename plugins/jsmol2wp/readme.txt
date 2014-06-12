@@ -35,6 +35,7 @@ http://proteopedia.org/support/JSmolExtension/
 - changed system for counting instances of the shorttag so we don't need preg_match
 - removed whitespace from template hoping that solves the problem of themes adding markup
 - simplified load script as suggested by Bob Hansen
+- made applet IDs more unique by appending post id
 0.7 beta
 - update jsmol libraries to 4.1.7_2014.06.09
 - add dependencies for jquery-ui-core and jquery-ui-menu fixes popup problem in some themes

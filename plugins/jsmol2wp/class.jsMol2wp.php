@@ -11,11 +11,12 @@ class jsMol2wp{
 		$this->path = plugins_url().'/jsmol2wp/';
 		$this->acc = $acc;
 		$this->type = $type;
+		$p = get_post();
 		# determine the instance if there are multiple copies
 		# of the shortcode in the post
 		$m = explode('[jsmol', get_the_content());
 		foreach($m as $i => $match){
-			if(stripos($match, $acc) > 0) $this->instance = $i;
+			if(stripos($match, $acc) > 0) $this->instance = $i.$p->ID;
 		}
 		
 		if($fileURL != ''){
