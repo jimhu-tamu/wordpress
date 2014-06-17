@@ -5,18 +5,25 @@ class jsMol2wp{
 	var $fileURL = '';
 	var $instance = 0;
 	var $acc = '';
+	var $appletID = '';
 	var $type = '';
 	
-	public function __construct($acc, $type, $fileURL){
+	public function __construct($acc, $type, $caption, $id, $fileURL){
 		$this->path = plugins_url().'/jsmol2wp/';
 		$this->acc = $acc;
 		$this->type = $type;
 		$p = get_post();
 		# determine the instance if there are multiple copies
-		# of the shortcode in the post
+		# of the shortcode in this post
 		$m = explode('[jsmol', get_the_content());
 		foreach($m as $i => $match){
-			if(stripos($match, $acc) > 0) $this->instance = $i.$p->ID;
+			# catenate the post_id to the instance to make the id unique
+			# when displaying multiple posts per page
+			if(	stripos($match, $acc) > 0 &&
+				($caption == '' || stripos($match, $caption) > 0) &&
+				($fileURL == '' || stripos($match, $fileURL) > 0) &&
+				($id == '' || stripos($match, $id) > 0)
+			) $this->instance = $p->ID."_$i";
 		}
 		
 		if($fileURL != ''){
@@ -29,18 +36,23 @@ class jsMol2wp{
 				$this->fileURL = $attachment->guid;
 			}
 		}
+		$this->appletID = "jmolApplet".$this->instance;
+
 	}
 	
 	
-	function makeViewer($acc, $type, $caption, $commands, $wrap, $debug){
+	function makeViewer($acc, $type, $load, $caption, $commands, $wrap, $debug){
 		# variables substitution to handle multiple viewers on the same 
 		# post/page
-		$applet = "jmolApplet".$this->instance;
+		$applet = $this->appletID;
+		# not used?
 		$mydiv = "myDiv".$this->instance;
+		
+		# initialize output
 		$html = "";
-		$template = $this->getTemplate();
+		$template = $this->getTemplate($load);
 		$template = str_replace('jmolApplet0',$applet, $template );
-		$template = str_replace('1crn',$acc, $template );
+	#	$template = str_replace('1crn',$acc, $template );
 		$template = str_replace('XXXX',$acc, $template );
 		$template = str_replace('__caption__',$caption, $template );
 		$template = $this->makeScriptButtons($commands, $template, $wrap);
@@ -54,7 +66,7 @@ class jsMol2wp{
 		}
 		$html .= $template;
 		if($debug != 'false'){
-			$html .= $this->debug();
+			$html .= $this->debug($debug);
 		}
 		#$html .= "debug:$debug<br>wrap:$wrap";
 		return $html;
@@ -64,7 +76,7 @@ class jsMol2wp{
 		$buttons = '';
 		$jmolCommandInput = '';
 		$notButtons = 0;
-		$applet = "jmolApplet".$this->instance;
+		$applet = $this->appletID;
 		$commands = str_replace("\n",' ', strip_tags($commands));
 		if($commands != ''){
 			$commandsSet = explode('|||', $commands);
@@ -75,11 +87,13 @@ class jsMol2wp{
 				# if there is no script, assume that the line is raw Jmol script
 				switch($label){
 					case '':
-						#Jmol.script(myJmol,"spacefill off; wireframe 0.3;");
+						# if label is not set, we assume the user wants Jmol script not
+						# wrapped in a button
 						$buttons .= "Jmol.script($applet,\"$script\");\n";
 						$notButtons++;
 						break;
 					case 'jmolCommandInput':
+						# this is a special case to add a command line input
 						$jmolCommandInput .= "Jmol.jmolCommandInput($applet);\n";
 						$notButtons++;
 						break;	
@@ -89,8 +103,8 @@ class jsMol2wp{
 				$j = $i+2-$notButtons;
 				if($j%$wrap == 0) $buttons .= "jmolBr()\n";
 			}
-			$buttons .= "jmolButton('reset;select all; display not solvent;center;spacefill off;wireframe off;cartoons on;color structure;zoom 0;','reset')\n";	
 		}
+		$buttons .= "jmolButton('reset;select all;$this->load','reset')\n";	
 		$buttons .= $this->standardButtons($wrap).$jmolCommandInput;
 		$template = str_replace('__commands__',$buttons, $template );	
 		return $template;
@@ -100,7 +114,10 @@ class jsMol2wp{
 	*/	
 	function standardButtons($wrap){
 		$str = "Jmol.setButtonCss(null,\"style='width:100px'\")\n";
-		$stdButtons = explode("\n", 
+		$stdButtons = array();
+		switch ($this->type){
+			case 'pdb':
+				$stdButtons = explode("\n", 
 'jmolButton("color cpk");
 jmolButton("color group");
 jmolButton("color amino");
@@ -108,7 +125,22 @@ jmolButton("color structure");
 jmolButton("trace only");
 jmolButton("cartoon only");
 jmolButton("backbone only");
-jmolButton("spacefill 23%;wireframe 0.15","ball&stick");');
+jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
+);
+				break;
+			default:
+				$stdButtons = explode("\n", 
+'jmolButton("color cpk");
+jmolButton("color grey");
+jmolButton("spacefill","spacefill");
+jmolButton("if(dotsflag);dots off;dotsflag = false;else;dots on;dotsflag = true;endif","dots");
+jmolButton("spacefill off;wireframe 0.15","wireframe");
+jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
+);
+				break;
+				
+		}
+
 		foreach($stdButtons as $i => $button){
 			if($i%$wrap == 0) $str .= "jmolBr();\n";
 			$str .= $button;
@@ -116,8 +148,20 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");');
 		return $str;
 	}
 	
-	function getTemplate(){
+	function getTemplate($load){
 		$template = file_get_contents(dirname(__FILE__).'/jsmol_template.htm');
+		$loadStr = "load \"http://www.rcsb.org/pdb/files/XXXX.pdb\";set echo top center;echo XXXX;'
++'spacefill off;wireframe off;cartoons on;color structure;spin off;";
+		if($load != ''){ 
+			$loadStr = $load; 
+		}elseif($this->acc{0} == '$'||$this->acc{0} == ':'){
+			$loadStr = "load $this->acc;spacefill 23%;wireframe 0.15;color cpk;spin off;";
+			$this->acc = ltrim($this->acc,'$:');
+			$this->type = 'molecule';	
+		}	
+		$template = str_replace('__load__', "+'$loadStr'", $template);
+		# save the loadstr for later use
+		$this->load = $loadStr;
 		switch ($this->type){
 			case 'obj':
 				$template = str_replace(
@@ -129,7 +173,9 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");');
 					"+'spacefill 23%;wireframe 0.15;color cpk;spin off;'", 
 					$template);
 				break;
+			case 'xyz':
 			case 'mol':
+			case 'mol2':
 				#change the default load coloring and display
 				$template = str_replace(
 					"+'spacefill off;wireframe off;cartoons on;color structure;spin off;'",
@@ -147,30 +193,45 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");');
 		return $template;
 	}
 	
-	function debug(){
+	function debug($debug){
 		$str = '<pre>';
 		# file path
-		$dirpath = dirname(__FILE__);
-		$str .= "Directory path:$dirpath\n";
-		$str .= "URL path:        $this->path\n";
-		$fileTests = array(
-		#	'foo.js' => "$this->path",
-			'JSmol.min.nojq.js' => "$this->path",
-			'package.js' => "$this->path/j2s/core/"
-		);
-		foreach($fileTests as $file => $path){
-			if(!wp_remote_fopen("$path$file")){ 
-				$str .= "can't load $path$file\n";
-			}else{
-				$str .= "$file load OK\n";
-			}
+		switch($debug){
+			case 'short':
+				$str .= "applet ID: $this->appletID\n";
+				$str .= "acc: $this->acc\n";
+				$str .= "type:$this->type\n";
+				break;
+			case 'full':
+			default:
+				$str .= print_r($this,true);
+				$dirpath = dirname(__FILE__);
+				$str .= "Directory path:$dirpath\n";
+				$fileTests = array(
+					'JSmol.min.nojq.js' => "$this->path",
+					'package.js' => "$this->path/j2s/core/"
+				);
+				
+				$str .= "test whether versious files are readable by wp_remote_fopen\n";
+				foreach($fileTests as $file => $path){
+					if(!wp_remote_fopen("$path$file")){ 
+						$str .= "can't load $path$file\n";
+					}else{
+						$str .= "$file load OK\n";
+					}
+				}
+				$str .= 'file_get_contents: ';
+				$str .=  file_get_contents(__FILE__) ? 'Enabled' : 'Disabled';
+				if($this->fileURL != ''){
+					$str .= "\npath to uploaded file:".$this->fileURL."\n";
+					$tmp = wp_remote_fopen($this->fileURL);
+					$str .= "Excerpt from file:".substr($tmp, 0, 20)."...\n";
+					$attachment = get_page_by_title($this->acc, OBJECT, 'attachment' );
+					if(is_null($attachment)) $str .= "attachment for $this->acc not found\n";
+				}
+				break;	
 		}
-		$str .= 'file_get_contents: ';
-		$str .=  file_get_contents(__FILE__) ? 'Enabled' : 'Disabled';
-		$str .= "\npath to uploaded file:".$this->fileURL."\n";
-		$attachment = get_page_by_title($this->acc, OBJECT, 'attachment' );
-		if(is_null($attachment)) $str .= "attachment for $this->acc not found\n";
-		$str .= "attachment:".print_r($attachment,true);
+		
 		$str .= "</pre>";
 		return $str;
 	}

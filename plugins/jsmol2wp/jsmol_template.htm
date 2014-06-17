@@ -16,8 +16,7 @@ jmol_isReady = function(applet) {
 	Jmol._getElement(applet, "appletdiv").style.border="1px solid blue"
 }		
 script = 'set echo top left;echo loading XXXX...;refresh;'
-+'load "http://www.rcsb.org/pdb/files/XXXX.pdb";set echo top center;echo XXXX;'
-+'spacefill off;wireframe off;cartoons on;color structure;spin off;'
+__load__
 var Info = {
 	width: 400,
 	height: 400,
@@ -51,6 +50,6 @@ Jmol.setButtonCss(null,"style='width:100px'")
 jmolButton("if(_spinning);spin off;spinflag = false;else;spin on;spinflag = true;endif","toggle spin")
 __commands__
 </script>
-<br/>__help__ <a href='http://wiki.jmol.org/index.php/Mouse_Manual'>mouse gestures</a>
+<br/>__help__  
 </td></tr></table>
 </div>
