@@ -15,8 +15,7 @@ Jmol._debugCode = (s.indexOf("debugcode") >= 0);
 jmol_isReady = function(applet) {
 	Jmol._getElement(applet, "appletdiv").style.border="1px solid blue";
 };	
-script = 'set echo top left;echo loading XXXX...;refresh;'
-__load__;
+script = 'set echo top left;echo loading XXXX...;refresh;'__load__;
 var Info = {
 	width: 400,
 	height: 400,
@@ -31,11 +30,11 @@ var Info = {
 	disableInitialConsole: true
 };
 // these are conveniences that mimic behavior of Jmol.js
-function jmolCheckbox(script1, script0,text,ischecked) {Jmol.jmolCheckbox(jmolApplet0,script1, script0, text, ischecked)}
-function jmolButton(script, text) {Jmol.jmolButton(jmolApplet0, script,text)}
-function jmolHtml(s) { document.write(s) }
-function jmolBr() { jmolHtml("<br />") }
-function jmolMenu(a) {Jmol.jmolMenu(jmolApplet0, a)}
+function jmolCheckbox(script1, script0,text,ischecked) {Jmol.jmolCheckbox(jmolApplet0,script1, script0, text, ischecked);}
+function jmolButton(script, text) {Jmol.jmolButton(jmolApplet0, script,text);}
+function jmolHtml(s) { document.write(s); }
+function jmolBr() { jmolHtml("<br />"); }
+function jmolMenu(a) {Jmol.jmolMenu(jmolApplet0, a);}
 </script>
 <table><tr>
 <td align=center>
