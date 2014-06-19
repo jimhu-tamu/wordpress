@@ -35,7 +35,8 @@ http://proteopedia.org/support/JSmolExtension/
 - improve uniqueness identifiers for multiple Jmolapplets on the same post/page; add the option to hand code instances
 - improve debug messages (or at least change them)
 - make reset button standard and have it remember the load commands
-- change default buttons based on type of molecule loaded
+- standard buttons depend on the type of molecule loaded.
+- add some semicolons to the template to try to fix lint warnings: http://www.javascriptlint.com/online_lint.php
 0.8 beta
 - removed data directory
 - changed system for counting instances of the shorttag so we don't need preg_match
