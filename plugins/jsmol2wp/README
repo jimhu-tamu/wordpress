@@ -7,6 +7,8 @@ This plugin also benefited from using Jaime Prilusky's mediawiki extension for i
 http://proteopedia.org/support/JSmolExtension/
 
 == Development notes ==
+0.92 beta
+- change appletID to not require $acc.
 0.9 beta
 - improve help page
 - improve uniqueness identifiers for multiple Jmolapplets on the same post/page; add the option to hand code instances

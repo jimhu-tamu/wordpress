@@ -19,7 +19,7 @@ class jsMol2wp{
 		foreach($m as $i => $match){
 			# catenate the post_id to the instance to make the id unique
 			# when displaying multiple posts per page
-			if(	stripos($match, $acc) > 0 &&
+			if(	($acc == '' || stripos($match, $acc) > 0 ) &&
 				($caption == '' || stripos($match, $caption) > 0) &&
 				($fileURL == '' || stripos($match, $fileURL) > 0) &&
 				($id == '' || stripos($match, $id) > 0)
