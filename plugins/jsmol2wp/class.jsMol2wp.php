@@ -7,21 +7,31 @@ class jsMol2wp{
 	var $acc = '';
 	var $appletID = '';
 	var $type = '';
+	var $load = '';
 	
-	public function __construct($acc, $type, $caption, $id, $fileURL){
+	public function __construct($acc, $type, $caption, $id, $fileURL, $isosurface){
 		$this->path = plugins_url().'/jsmol2wp/';
 		$this->acc = $acc;
 		$this->type = $type;
 		$p = get_post();
 		# determine the instance if there are multiple copies
 		# of the shortcode in this post
+		# we want to do this without preg_match to work on different PHP versions
 		$m = explode('[jsmol', get_the_content());
 		foreach($m as $i => $match){
+			$t = explode(']', $match);
+			# there could be nested shortcodes or other shortcodes in the text
+			# but trim off what is safe to trim off
+			if(count($t) > 1){
+				array_pop($t);
+				$match = implode(']', $t);
+			}
 			# catenate the post_id to the instance to make the id unique
 			# when displaying multiple posts per page
 			if(	($acc == '' || stripos($match, $acc) > 0 ) &&
 				($caption == '' || stripos($match, $caption) > 0) &&
 				($fileURL == '' || stripos($match, $fileURL) > 0) &&
+				($isosurface == '' || stripos($match, $fileURL) > 0) &&
 				($id == '' || stripos($match, $id) > 0)
 			) $this->instance = $p->ID."_$i";
 		}
@@ -31,10 +41,20 @@ class jsMol2wp{
 			$this->fileURL = $fileURL;
 		}else{	
 			# otherwise, look for an attachment
-			$attachment = get_page_by_title($acc, OBJECT, 'attachment' );
+		#	$attachment = get_page_by_title($acc, OBJECT, 'attachment' );
+			$attachment = self::getAttachmentPost("$acc.$type");
 			if(!is_null($attachment) && isset($attachment->guid)){
 				$this->fileURL = $attachment->guid;
 			}
+		}
+		$this->isosurface = $isosurface;
+		if($isosurface != ''){
+			# isosurface will be an uploaded file or a URL
+			# replace if it's an attachment
+			$attachment = self::getAttachmentPost($isosurface);
+			if(!is_null($attachment) && isset($attachment->guid)){
+				$this->isosurface = $attachment->guid;
+			}				
 		}
 		$this->appletID = "jmolApplet".$this->instance;
 
@@ -42,33 +62,19 @@ class jsMol2wp{
 	
 	
 	function makeViewer($acc, $type, $load, $caption, $commands, $wrap, $debug){
-		# variables substitution to handle multiple viewers on the same 
-		# post/page
-		$applet = $this->appletID;
 		# not used?
-		$mydiv = "myDiv".$this->instance;
-		
+		$mydiv = "myDiv".$this->instance;		
 		# initialize output
 		$html = "";
 		$template = $this->getTemplate($load);
-		$template = str_replace('jmolApplet0',$applet, $template );
-	#	$template = str_replace('1crn',$acc, $template );
+		$template = str_replace('jmolApplet0',$this->appletID, $template );
 		$template = str_replace('XXXX',$acc, $template );
 		$template = str_replace('__caption__',$caption, $template );
 		$template = $this->makeScriptButtons($commands, $template, $wrap);
-		# look for a path to a local data file
-		if($this->fileURL != ''){
-			$template = str_replace(
-					"http://www.rcsb.org/pdb/files/$acc.pdb",
-					$this->fileURL, $template);
-		}elseif(!isset($acc) || $acc  == ''){
-			$html = "Please specify the name of an uploaded .pdb file";
-		}
 		$html .= $template;
 		if($debug != 'false'){
 			$html .= $this->debug($debug);
 		}
-		#$html .= "debug:$debug<br>wrap:$wrap";
 		return $html;
 	}
 	
@@ -147,52 +153,84 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
 		}
 		return $str;
 	}
-	
+	/*
+	Gets the template and creates the molecule load and format commands
+	*/
 	function getTemplate($load){
 		$template = file_get_contents(dirname(__FILE__).'/jsmol_template.htm');
-		$loadStr = "load \"http://www.rcsb.org/pdb/files/XXXX.pdb\";set echo top center;echo XXXX;'
-+'spacefill off;wireframe off;cartoons on;color structure;spin off;";
-		if($load != ''){ 
-			$loadStr = $load; 
-		}elseif($this->acc{0} == '$'||$this->acc{0} == ':'){
-			$loadStr = "load $this->acc;spacefill 23%;wireframe 0.15;color cpk;spin off;";
-			$this->acc = ltrim($this->acc,'$:');
-			$this->type = 'molecule';	
-		}	
-		$template = str_replace('__load__', "+'$loadStr'", $template);
-		# save the loadstr for later use
+		# if load is set, it is used and we don't guess
+		if($load != '') $loadStr = $load;
+		# otherwise try to guess the right load string
+		if($this->load != ''){ 
+			$loadStr = $this->load; 
+		}else{
+			if($this->acc != '' && ($this->acc{0} == '$'||$this->acc{0} == ':')){
+				$loadStr = "load $this->acc;spacefill 23%;wireframe 0.15;color cpk;spin off;";
+				$this->type = 'mol';	
+			}
+			# if the type is pdb, look for it at rcsb.org
+			if($this->type == 'pdb'){
+				$loadStr = "load \"http://www.rcsb.org/pdb/files/$this->acc.pdb\";";			
+			}
+			# if there is a local file, override the guessed remote load and if needed, guess the type
+			if($this->fileURL != ''){
+				$this->type = pathinfo($this->fileURL, PATHINFO_EXTENSION);
+				$loadStr = "load $this->fileURL;";
+			}
+			# add the default format
+			switch ($this->type){
+				case 'obj':
+					#this is going to only be with a fileURL?
+					$loadStr = str_replace(
+						"load",
+						"isosurface OBJ ", 
+						$loadStr);
+					$loadStr .= " spacefill 23%;wireframe 0.15;color cpk;spin off;";
+					break;
+				case 'xyz':
+				case 'mol':
+				case 'mol2':
+					#change the default load coloring and display
+					$loadStr .= ' spacefill 23%;wireframe 0.15;color cpk;spin off;';
+					break;
+				case 'mrc':
+					return "Support for binary type: $this->type is not implemented yet";
+					break;
+				case 'pdb':
+					$loadStr .= ' spacefill off;wireframe off;cartoons on;color structure;spin off;';
+					break;
+				default:
+			}
+		}
+		# add isosurface if it's present
+		if($this->isosurface != ''){
+			$loadStr .= " isosurface $this->isosurface;";
+		}
+		# add the acc label
+		if($this->acc != '') $loadStr .= "set echo top center; echo ".ltrim($this->acc,'$:').';';
+		$template = str_replace('__load__', $loadStr, $template);
+		# save the loadstr for use by the reset button
 		$this->load = $loadStr;
-		switch ($this->type){
-			case 'obj':
-				$template = str_replace(
-					"+'load",
-					"+'isosurface OBJ ", 
-					$template);
-				$template = str_replace(
-					"+'spacefill off;wireframe off;cartoons on;color structure;spin off;'",
-					"+'spacefill 23%;wireframe 0.15;color cpk;spin off;'", 
-					$template);
-				break;
-			case 'xyz':
-			case 'mol':
-			case 'mol2':
-				#change the default load coloring and display
-				$template = str_replace(
-					"+'spacefill off;wireframe off;cartoons on;color structure;spin off;'",
-					"+'spacefill 23%;wireframe 0.15;color cpk;spin off;'", 
-					$template);
-				break;
-			case 'mrc':
-				return "Support for binary type: $this->type is not implemented yet";
-				break;
-			default:
-		}	
 		$template = str_replace('http://chemapps.stolaf.edu/jmol/jsmol/',$this->path, $template );
 		$template = str_replace('__j2s__',$this->path."j2s", $template );
 		$template = str_replace('__help__', "<a href='$this->path/help.htm'>About/Help</a>", $template );
 		return $template;
 	}
 	
+	static function getAttachmentPost($filename){
+		$args = array('post_type' => 'attachment', 'posts_per_page'=>-1, 'post_status' => 'any', 'post_parent' => null);
+		$media = get_posts( $args );
+		foreach($media as $p){
+			$attFileName = basename($p->guid);
+			if($filename == $attFileName){
+				return $p;
+			}	
+		}
+		# if the above fails, check for a case where the extension was not given in type
+		$attachment = get_page_by_title($filename, OBJECT, 'attachment' );
+		return $attachment;
+	}
+		
 	function debug($debug){
 		$str = '<pre>';
 		# file path
@@ -212,7 +250,7 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
 					'package.js' => "$this->path/j2s/core/"
 				);
 				
-				$str .= "test whether versious files are readable by wp_remote_fopen\n";
+				$str .= "test whether various files are readable by wp_remote_fopen\n";
 				foreach($fileTests as $file => $path){
 					if(!wp_remote_fopen("$path$file")){ 
 						$str .= "can't load $path$file\n";

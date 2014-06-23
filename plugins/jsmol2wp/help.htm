@@ -2,20 +2,23 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>About JSmol2wp (0.91 beta)</title>
+	<title>About JSmol2wp (0.94 beta)</title>
 	<meta name="generator" content="BBEdit 10.5" />
 	<link rel="stylesheet" type="text/css" href="css/help.css">
 
 </head>
 <body>
-<h2>About JSmol2wp (0.92 beta)</h2>
-This Wordpress plugin is based on the <a href="http://wiki.jmol.org/index.php/Jmol_JavaScript_Object#JSmol">JSmol molecular graphics viewer</a> from Bob Hanson, Zhou Renjian, and Takanori Nakane. Adaptation of JSmol to a Wordpress plugin was started by Jim Hu in June 2014. JSmol2wp is should be considered beta!!! Use at your own risk and please report problems.
+<h2>About JSmol2wp (0.94 beta)</h2>
+<p>This Wordpress plugin is based on the <a href="http://wiki.jmol.org/index.php/Jmol_JavaScript_Object#JSmol">JSmol molecular graphics viewer</a> from Bob Hanson, Zhou Renjian, and Takanori Nakane. Adaptation of JSmol to a Wordpress plugin was started by Jim Hu in June 2014. JSmol2wp  should be considered beta!!! Use at your own risk and please report problems.</p>
+
+<p>This is a shortcode extension. Use</p><pre>[jsmol pdb='<em>accession</em>']</pre><p> for a minimal version showing macromolecule structures from the PDB.</p>
+
 <h2>Installation</h2>
 <span style="color: #ff0000;"><b>Warning: JSmol2wp alters the allowed MIME types for uploaded files to include chemical/pdb, whether or not you ever use the shortcode!!</b>.</span>
 
-Installation is typical for Wordpress plugins not in the Wordpress ecosystem yet.
+Installation is typical for Wordpress plugins not yet in the Wordpress ecosystem.
 <ul>
-	<li>Obtain the zip archivefrom <a href="https://github.com/jimhu-tamu/wordpress/tree/master/plugins">github</a>.</li>
+	<li>Obtain the zip archive from <a href="https://github.com/jimhu-tamu/wordpress/tree/master/plugins">github</a>.</li>
 	<li>From plugins control, click Add new</li>
 	<li>Select upload and upload the zip file</li>
 	<li>Activate it.</li>
@@ -23,14 +26,18 @@ Installation is typical for Wordpress plugins not in the Wordpress ecosystem yet
 <h2>Usage</h2>
 <h3>Loading a structure</h3>
 <h4>Proteins remotely from the pdb</h4>
-This is a shortcode extension. Use [jsmol pdb='accession'] for a minimal version.
-<h4>Small molecules remotely fromNCI</h4>
+<pre>[jsmol pdb='<em>accession</em>']</pre><p> is equivalent to</p> <pre>[jsmol acc='<em>accession</em>' type='pdb']</pre>
+<h4>Small molecules remotely from NCI and from PubChem</h4>
 <div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'assets/jsmol-1.png' width=300px><p>Figure 1. Screenshot of JSmol2wp viewer for a small molecule</p></div>
 <p>Jmol can look up small molecules by name at the NCI resolver (<a href="http://cactus.nci.nih.gov/chemical/structure">http://cactus.nci.nih.gov/chemical/structure</a>). Use</p>
 
-acc = $<em>name</em>
+<pre>[jsmol acc = $<em>name</em>]</pre>
 
-where name is a molecule name. For example, acc='$tryptophan' loads the tryptophan structure (Figure 1).
+where name is a molecule name. For example, acc='$tryptophan' loads the tryptophan structure (Figure 1).</p>
+<p>Alternatively, you can use the NCBI PubChem server with:
+</p>
+<pre>[jsmol acc = :<em>name</em>]</pre>
+
 <h4>From files uploaded to your media library</h4>
 JSmol2wp can also work with files that are uploaded to your media library. JSmol2wp modifies your Wordpress installation to allow additional mime types to be uploaded. The following have been added so far:
 <ul>
@@ -43,27 +50,28 @@ JSmol2wp can also work with files that are uploaded to your media library. JSmol
 	<li>.xyz = 'chemical/x-xyz'</li>
 	<li>.ccp4 = 'text/ccp4'</li>
 </ul>
-JSmol2wp will look to see if a file has been uploaded to your wordpress and it will use that file if it can find it. If it can't find a matching post for an uploaded attachment, it will try <a href="http://rcsb.org/pdb">http://rcsb.org/pdb</a>. If it can't find a match there either, you'll get an error message in the JSmol window.
+<p>If you use acc=<em>accession</em> and type=<em>extension</em>; JSmol2wp uses these to find the matching filename among the Wordpress uploaded media files. JSmol2wp will look to see if a file has been uploaded to your wordpress and it will use that file if it can find it. Example </p>
+<pre>[jsmol acc='caffeine' type='mol']</pre>
+<p>Will look for an uploaded file named caffeine.mol. If it can't find a matching post for an uploaded attachment and type=pdb, it will try <a href="http://rcsb.org/pdb">http://rcsb.org/pdb</a>. If it can't find a match there either, you'll get an error message in the JSmol window.</p>
 <h4>telling JSmol2wp where to look for a data file</h4>
-Sometimes JSmol2wp doesn't find the right path (see known issues, below), or you want to point it to a file path that is not in your media library. You can use
+<p>Alternatively, you can point JSmol2wp to a file path that is not in your media library. You can use</p>
+<pre>fileurl='http://path_to_file'</pre>
 
-fileurl='http://path_to_file'
-
-to force JSmol2wp to use that file. You can use any file with a publicly accessible URL
+<p>to force JSmol2wp to use that file. You can use any file with a publicly accessible URL</p>
 <h3>Add a caption</h3>
-The captions parameter adds a text caption above the applet viewer.
+<p>The captions parameter adds a text caption above the applet viewer.</p>
 <h3>Commands and buttons</h3>
 <p>JSmol2wp will always put a set of standard buttons below your viewer. It will try to guess which set of buttons to use, depending on whether you are loading a protein or a small molecule. This is determined by type (pdb or anything else)</p>
 <p>The commands parameter allows you to run additional Jmol commands on loading or create buttons that will run commands. Separate commands with three pipes ( '|||")</p>
 <h4>Commands syntax</h4>
-Individual ommands have the format label=script, where label is the text you want on the button, and script is the Jmol script you want to run.JSmol2wp parses these, first by splitting on the ||| string and then on the = character. There are three kinds of command pairs.
+<p>Individual ommands have the format label=script, where label is the text you want on the button, and script is the Jmol script you want to run.JSmol2wp parses these, first by splitting on the ||| string and then on the = character. There are three kinds of command pairs.</p>
 <ul>
 	<li>JSmol2wp creates a button with the label. Clicking the button runs the script, unless:</li>
 	<li>If the label is blank, JSmol2wp runs the script immediately. Use this to override the initialization on a per applet basis</li>
 	<li>If the label is jmolCommandInput JSmol2wp appends a command input box at the bottom.</li>
 </ul>
 <h3>Debugging problems</h3>
-add debug=value where the value can be:
+<p>add debug=value where the value can be:</p>
 <ul>
 	<li>short: just shows
 <ul>
@@ -75,21 +83,31 @@ add debug=value where the value can be:
 	<li>full: dumps the jsmol2wp object and runs other tests.</li>
 </ul>
 <h3>Additional parameters</h3>
-JSmol2wp can take additional optional parameters:
+<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'assets/jsmol-2.png' width=300px><p>Figure 2. Screenshot of JSmol2wp viewer for a with an isosurface loaded from a local file</p></div>
+<p>JSmol2wp can take additional optional parameters:</p>
 <ul>
 	<li>acc: accession. Use as an alternative to pdb=, and use this for accessions that are not pdb files.</li>
 	<li>type: the type of viewer. Default = pdb. JSmol will try to guess what you want for the default view.</li>
 	<li>wrap: the number of buttons to put in each row. default = 4</li>
 	<li>id: use this to distinguish multiple copies of the shortcode if needed</li>
+	<li>isosurface: filename of an uploaded file, or a URL for an isosurface.</li>
 	<li>load: override the how JSmol does its loading with your own Jmol commands.</li>
 	<li>debug: show information about paths to required js files. default = false</li>
 </ul>
+<p>Figure 2 shows a structure and isosurface loaded from files uploaded to a local directory outside the Wordpress uploads path. The markup is:</p>
+<pre>[jsmol acc='isosurface_example' 
+caption="Isosurface test from Henry Rzepa" 
+fileurl='http://localhost/tmp/s_den.cub_.xyz' 
+isosurface='http://localhost/tmp/s_den.cub_.jvxl']
+</pre>
+<p>Note that in this example, the acc parameter isn't really an accession. It's only being used to create a text label in the applet viewer.</p>
+<br clear='all'>
 <h2>Examples</h2>
 <h3>Basic</h3>
 <pre>[jsmol pdb='1LMB' caption='lambda repressor headpiece']</pre>
 <h3>Advanced</h3>
-<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'assets/jsmol-2.png' width=300px><p>Figure 2. Screenshot of JSmol2wp viewer for a protein, with custom command/script execution buttons</p></div>
-Figure 2 is a  screenshot of the sample viewer in this example post <a href="http://biochemistryweb.tamu.edu/biobiodev/testing-jsmol-post/">here</a>. Note: that post may be ephemeral, as it's on a development site that often gets overwritten. The markup in that post is:
+<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'assets/jsmol-3.png' width=300px><p>Figure 2. Screenshot of JSmol2wp viewer for a protein, with custom command/script execution buttons</p></div>
+<p>Figure 3 is a  screenshot of the sample viewer in this example post <a href="http://biochemistryweb.tamu.edu/biobiodev/testing-jsmol-post/">here</a>. Note: that post may be ephemeral, as it's on a development site that often gets overwritten. The markup in that post is:</p>
 <pre>[jsmol pdb='1LMB' caption='&amp;lambda; repressor headpiece' 
 commands='
 arm = select 1-6:3, 1-6:4;color yellow;|||
@@ -116,12 +134,12 @@ color cpk;
 zoomto (45:4) 300;
 ']
 </pre>
-This creates six custom buttons based on the text from the shortcode, and a reset button that tries to restore the original view. A lot of the suboptimal behavior of those buttons is from my lack of mastery of Jmol scripting. Note that Jmol commands can be used to load command sets from files.
+<p>This creates six custom buttons based on the text from the shortcode, and a reset button that tries to restore the original view. A lot of the suboptimal behavior of those buttons is from my lack of mastery of Jmol scripting. Note that Jmol commands can be used to load command sets from files.</p>
 <h2>Known issues</h2>
 <ul>
-	<li>WordPress (as far as I can tell) doesn't have a way to search for a file in the media library based on the name of the attachment vs the name of the post associated with the attachment. Thus, if you have multiple uploads with the dame file name but different extensions (e.g. text.pdb vs test.jpg), JSmol may pick the wrong one. In that case, specify the fileurl.</li>
-	<li>Some themes will add HTML tags inside the scripting stanzas created by JSmol2wp. This can cause the plugin to fail. You can detect this by viewing source in your favorite browser. Please let meknow what theme caused the problem, and if it's a free one Ican do some testing to see if we can overcome the problem.</li>
+	<li>Some themes will add HTML tags inside the scripting stanzas created by JSmol2wp. This can cause the plugin to fail. You can detect this by viewing source in your favorite browser. Please let me know what theme caused the problem, and if it's a free one Ican do some testing to see if we can overcome the problem.</li>
 	<li>HTML entities to make symbols in the captions can behave oddly if you edit the post with the visual editor.</li>
+	<li>Accessions can't have spaces.</li>
 </ul>
 <h2>Please report bugs</h2>
 at <a href="https://github.com/jimhu-tamu/wordpress">GitHub</a> or send a tweet to @jimhu
@@ -134,6 +152,6 @@ at <a href="https://github.com/jimhu-tamu/wordpress">GitHub</a> or send a tweet 
 <h2>License</h2>
 JSmol2wp is available under the <a href="http://opensource.org/licenses/GPL-3.0">GPL-3.0 license</a>
 
-this document updated by Jim Hu on June 13, 2014
+this document updated by Jim Hu on June 23, 2014
 </body>
 </html>

@@ -30,6 +30,13 @@ This plugin also benefited from using Jaime Prilusky's mediawiki extension for i
 http://proteopedia.org/support/JSmolExtension/
 
 == Development notes ==
+0.94 beta
+- add isosurface support
+- rewrite the code to set up structure loading
+- replace WP get_page_by_title with a function that matches the filename
+0.93 beta
+- set default type based on fileurl extension if present
+- fix bug where reset button failed with data from fileurl
 0.92 beta
 - change appletID to not require $acc.
 0.9 beta

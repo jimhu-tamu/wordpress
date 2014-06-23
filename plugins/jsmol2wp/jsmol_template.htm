@@ -1,8 +1,7 @@
 <div class = 'jsmol2wp'>
 <script type="text/javascript">
-// 1/21/2013 10:54:15 PM -- adds image handling
 var jmolApplet0; // set up in HTML table, below
-// logic is set by indicating order of USE -- default is HTML5 for this test page, though
+// logic is set by indicating order of USE -- default is HTML5 
 var use = "HTML5"; // JAVA HTML5 WEBGL IMAGE  are all options
 var s = document.location.search;
 // Developers: The _debugCode flag is checked in j2s/core/core.z.js, 
@@ -14,8 +13,9 @@ var s = document.location.search;
 Jmol._debugCode = (s.indexOf("debugcode") >= 0);
 jmol_isReady = function(applet) {
 	Jmol._getElement(applet, "appletdiv").style.border="1px solid blue";
-};	
-script = 'set echo top left;echo loading XXXX...;refresh;'__load__;
+};
+// _load_ is replaced in getTemplate() to supply a set of load and default format commands
+script = 'set echo top left;echo loading XXXX...;refresh;__load__';
 var Info = {
 	width: 400,
 	height: 400,
