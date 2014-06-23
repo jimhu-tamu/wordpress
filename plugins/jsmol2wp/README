@@ -11,6 +11,7 @@ http://proteopedia.org/support/JSmolExtension/
 - add isosurface support
 - rewrite the code to set up structure loading
 - replace WP get_page_by_title with a function that matches the filename
+- add jvxl to file types
 0.93 beta
 - set default type based on fileurl extension if present
 - fix bug where reset button failed with data from fileurl

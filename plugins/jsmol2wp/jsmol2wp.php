@@ -50,7 +50,7 @@ function jsmol_mime_types($mime_types){
     $mime_types['pdb'] = 'chemical/x-pdb';
     $mime_types['cif'] = 'chemical/x-cif';
     $mime_types['cml'] = 'chemical/x-cml+xml';
-    $mime_types['jvxi'] = 'chemical/x-jvxi';
+    $mime_types['jvxl'] = 'chemical/x-jvxl';
     $mime_types['mol'] = 'chemical/x-mdl-molfile';
     $mime_types['mol2'] = 'chemical/x-mol2';
     $mime_types['xyz'] = 'chemical/x-xyz';
