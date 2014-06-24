@@ -18,6 +18,7 @@ class jsMol2wp{
 		# of the shortcode in this post
 		# we want to do this without preg_match to work on different PHP versions
 		$m = explode('[jsmol', get_the_content());
+		array_shift($m);
 		foreach($m as $i => $match){
 			$t = explode(']', $match);
 			# there could be nested shortcodes or other shortcodes in the text
@@ -26,12 +27,15 @@ class jsMol2wp{
 				array_pop($t);
 				$match = implode(']', $t);
 			}
+			# odd bug requires recasting as a string to get stripos to work
+			$match = (string)$match;
 			# catenate the post_id to the instance to make the id unique
 			# when displaying multiple posts per page
+						
 			if(	($acc == '' || stripos($match, $acc) > 0 ) &&
 				($caption == '' || stripos($match, $caption) > 0) &&
 				($fileURL == '' || stripos($match, $fileURL) > 0) &&
-				($isosurface == '' || stripos($match, $fileURL) > 0) &&
+				($isosurface == '' || stripos($match, $isosurface) > 0) &&
 				($id == '' || stripos($match, $id) > 0)
 			) $this->instance = $p->ID."_$i";
 		}
@@ -161,6 +165,7 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
 		# if load is set, it is used and we don't guess
 		if($load != '') $loadStr = $load;
 		# otherwise try to guess the right load string
+		$loadStr = '';
 		if($this->load != ''){ 
 			$loadStr = $this->load; 
 		}else{
