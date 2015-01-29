@@ -7,7 +7,7 @@ Clazz.instantialize (this, arguments);
 Clazz.overrideMethod (c$, "initializeReader", 
 function () {
 });
-Clazz.overrideMethod (c$, "finalizeReader", 
+Clazz.overrideMethod (c$, "finalizeSubclassReader", 
 function () {
 if (this.haveBonds) this.asc.setNoAutoBond ();
 this.isTrajectory = false;
@@ -39,7 +39,7 @@ var readNextLine = true;
 for (var i = 0; i < ac; i++) {
 this.discardLinesUntilNonBlank ();
 if (this.line == null) break;
-var tokens = J.adapter.smarter.AtomSetCollectionReader.getTokensStr (this.line);
+var tokens = this.getTokens ();
 var sIndex = tokens[0];
 if (sIndex.equals (lastAtom)) {
 readNextLine = false;
@@ -98,7 +98,7 @@ break;
 default:
 var c1 = name.charAt (0);
 var c2 = name.charAt (1);
-n = (J.adapter.smarter.Atom.isValidElementSymbol2 (c1, c2) || c1 == 'C' && c2 == 'L' ? 2 : 1);
+n = (J.adapter.smarter.Atom.isValidSym2 (c1, c2) || c1 == 'C' && c2 == 'L' ? 2 : 1);
 }
 return name.substring (0, n);
 }, "~S");

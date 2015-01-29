@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.adapter.readers.xml");
-Clazz.load (["J.adapter.readers.xml.XmlReader"], "J.adapter.readers.xml.XmlCmlReader", ["java.lang.Float", "$.IndexOutOfBoundsException", "java.util.Properties", "$.StringTokenizer", "JU.PT", "J.adapter.smarter.Atom", "$.AtomSetCollection", "$.Bond", "J.api.JmolAdapter", "JU.Logger"], function () {
+Clazz.load (["J.adapter.readers.xml.XmlReader"], "J.adapter.readers.xml.XmlCmlReader", ["java.lang.Float", "$.IndexOutOfBoundsException", "java.util.Properties", "$.StringTokenizer", "JU.PT", "J.adapter.smarter.Atom", "$.Bond", "J.api.JmolAdapter", "JU.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.scalarDictRef = null;
 this.scalarDictValue = null;
@@ -236,7 +236,7 @@ case 0:
 if (name.equals ("module")) {
 if (--this.moduleNestingLevel == 0) {
 if (this.parent.iHaveUnitCell) this.applySymmetryAndSetTrajectory ();
-this.atomIdNames = this.asc.setAtomNames (this.atomIdNames);
+this.setAtomNames ();
 }}break;
 case 2:
 if (name.equals ("crystal")) {
@@ -246,7 +246,7 @@ this.embeddedCrystal = false;
 } else {
 this.state = 0;
 }} else if (name.equalsIgnoreCase ("cellParameter") && this.keepChars) {
-var tokens = J.adapter.smarter.AtomSetCollectionReader.getTokensStr (this.chars);
+var tokens = JU.PT.getTokens (this.chars);
 this.setKeepChars (false);
 if (tokens.length != 3 || this.cellParameterType == null) {
 } else if (this.cellParameterType.equals ("length")) {
@@ -263,7 +263,7 @@ this.parent.setFractionalCoordinates (false);
 case 3:
 if (name.equals ("scalar")) {
 this.state = 2;
-if (this.scalarTitle != null) this.checkUnitCellItem (J.adapter.smarter.AtomSetCollection.notionalUnitcellTags, this.scalarTitle);
+if (this.scalarTitle != null) this.checkUnitCellItem (J.adapter.readers.xml.XmlCmlReader.notionalUnitcellTags, this.scalarTitle);
  else if (this.scalarDictRef != null) this.checkUnitCellItem (J.api.JmolAdapter.cellParamNames, (this.scalarDictValue.startsWith ("_") ? this.scalarDictValue : "_" + this.scalarDictValue));
 }this.setKeepChars (false);
 this.scalarTitle = null;
@@ -290,7 +290,7 @@ case 6:
 if (name.equals ("molecule")) {
 if (--this.moleculeNesting == 0) {
 this.applySymmetryAndSetTrajectory ();
-this.atomIdNames = this.asc.setAtomNames (this.atomIdNames);
+this.setAtomNames ();
 this.state = 0;
 } else {
 this.state = 6;
@@ -353,6 +353,15 @@ this.state = 6;
 break;
 }
 }, "~S");
+Clazz.defineMethod (c$, "setAtomNames", 
+ function () {
+if (this.atomIdNames == null) return;
+var s;
+var atoms = this.asc.atoms;
+for (var i = 0; i < this.ac; i++) if ((s = this.atomIdNames.getProperty (atoms[i].atomName)) != null) atoms[i].atomName = s;
+
+this.atomIdNames = null;
+});
 Clazz.defineMethod (c$, "addNewBond", 
  function (a1, a2, order) {
 this.parent.applySymmetryToBonds = true;
@@ -484,5 +493,6 @@ Clazz.defineStatics (c$,
 "MOLECULE_BOND_BUILTIN", 14,
 "MODULE", 15,
 "SYMMETRY", 17,
-"LATTICE_VECTOR", 18);
+"LATTICE_VECTOR", 18,
+"notionalUnitcellTags", ["a", "b", "c", "alpha", "beta", "gamma"]);
 });

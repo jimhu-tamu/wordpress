@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JS");
-Clazz.load (["JS.ScriptError"], "JS.ScriptParam", ["java.lang.Float", "JU.CU", "$.Lst", "$.P3", "$.P4", "$.PT", "$.Quat", "$.SB", "$.V3", "JM.TickInfo", "JS.SV", "$.T", "JU.Edge", "$.Escape", "$.Logger", "$.Measure"], function () {
+Clazz.load (["JS.ScriptError"], "JS.ScriptParam", ["java.lang.Float", "JU.CU", "$.Lst", "$.Measure", "$.P3", "$.P4", "$.PT", "$.Quat", "$.SB", "$.V3", "JM.TickInfo", "JS.SV", "$.T", "JU.Edge", "$.Escape", "$.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.contextVariables = null;
 this.thisContext = null;
@@ -46,7 +46,7 @@ for (var i = 0; i < sv.size (); i++) sb.append (sv.get (i).asString ()).appendC 
 
 return sb.toString ();
 }
-return (Clazz.instanceOf (v, JS.SV) ? JS.SV.oValue (v) : v);
+return JS.SV.oValue (v);
 }, "~S,~N,~B");
 Clazz.defineMethod (c$, "getStringParameter", 
 function ($var, orReturnName) {
@@ -126,7 +126,7 @@ switch (this.getToken (i).tok) {
 case 10:
 case 1048577:
 var bs = this.atomExpression (this.st, i, 0, true, false, false, true);
-if (bs != null && bs.cardinality () == 1) return this.vwr.getAtomPoint3f (bs.nextSetBit (0));
+if (bs != null && bs.cardinality () == 1) return this.vwr.ms.at[bs.nextSetBit (0)];
 if (bs != null) return this.vwr.ms.getAtomSetCenter (bs);
 if (Clazz.instanceOf (this.expressionResult, JU.P3)) return this.expressionResult;
 this.invArg ();
@@ -177,8 +177,8 @@ return center;
 }, "~N,~N");
 Clazz.defineMethod (c$, "planeParameter", 
 function (i) {
-var vAB =  new JU.V3 ();
-var vAC =  new JU.V3 ();
+var vTemp =  new JU.V3 ();
+var vTemp2 =  new JU.V3 ();
 var plane = null;
 if (this.tokAt (i) == 135266319) i++;
 var isNegated = (this.tokAt (i) == 269484192);
@@ -190,7 +190,7 @@ break;
 case 1048582:
 var id = this.objectNameParameter (++i);
 if (this.chk) return  new JU.P4 ();
-plane = this.getPlaneForObject (id, vAB, vAC);
+plane = this.getPlaneForObject (id, vTemp);
 break;
 case 1112541205:
 if (!this.checkToken (++i) || this.getToken (i++).tok != 269484436) this.evalError ("x=?", null);
@@ -207,10 +207,9 @@ break;
 case 1073741824:
 case 4:
 var str = this.paramAsStr (i);
-if (str.equalsIgnoreCase ("xy")) return JU.P4.new4 (0, 0, 1, 0);
-if (str.equalsIgnoreCase ("xz")) return JU.P4.new4 (0, 1, 0, 0);
-if (str.equalsIgnoreCase ("yz")) return JU.P4.new4 (1, 0, 0, 0);
-this.iToken += 2;
+if (str.equalsIgnoreCase ("xy")) plane = JU.P4.new4 (0, 0, isNegated ? -1 : 1, 0);
+ else if (str.equalsIgnoreCase ("xz")) plane = JU.P4.new4 (0, isNegated ? -1 : 1, 0, 0);
+ else if (str.equalsIgnoreCase ("yz")) plane = JU.P4.new4 (isNegated ? -1 : 1, 0, 0, 0);
 break;
 case 1048586:
 case 8:
@@ -223,13 +222,20 @@ var pt1 = this.atomCenterOrCoordinateParameter (i);
 if (this.getToken (++this.iToken).tok == 269484080) ++this.iToken;
 var pt2 = this.atomCenterOrCoordinateParameter (this.iToken);
 if (this.getToken (++this.iToken).tok == 269484080) ++this.iToken;
+if (this.isFloatParameter (this.iToken)) {
+var frac = this.floatParameter (this.iToken);
+plane =  new JU.P4 ();
+vTemp.sub2 (pt2, pt1);
+vTemp.scale (frac * 2);
+JU.Measure.getBisectingPlane (pt1, vTemp, vTemp2, vTemp, plane);
+} else {
 var pt3 = this.atomCenterOrCoordinateParameter (this.iToken);
 i = this.iToken;
 var norm =  new JU.V3 ();
-var w = JU.Measure.getNormalThroughPoints (pt1, pt2, pt3, norm, vAB, vAC);
+var w = JU.Measure.getNormalThroughPoints (pt1, pt2, pt3, norm, vTemp);
 plane =  new JU.P4 ();
 plane.set4 (norm.x, norm.y, norm.z, w);
-if (!this.chk && JU.Logger.debugging) JU.Logger.debug ("points: " + pt1 + pt2 + pt3 + " defined plane: " + plane);
+}if (!this.chk && JU.Logger.debugging) JU.Logger.debug (" defined plane: " + plane);
 break;
 }
 if (plane == null) this.errorMore (38, "{a b c d}", "\"xy\" \"xz\" \"yz\" \"x=...\" \"y=...\" \"z=...\"", "$xxxxx");
@@ -248,8 +254,6 @@ return p;
 }, "~N");
 Clazz.defineMethod (c$, "getHklPlane", 
 function (pt) {
-var vAB =  new JU.V3 ();
-var vAC =  new JU.V3 ();
 var pt1 = JU.P3.new3 (pt.x == 0 ? 1 : 1 / pt.x, 0, 0);
 var pt2 = JU.P3.new3 (0, pt.y == 0 ? 1 : 1 / pt.y, 0);
 var pt3 = JU.P3.new3 (0, 0, pt.z == 0 ? 1 : 1 / pt.z);
@@ -273,11 +277,7 @@ pt3.set (pt1.x, 0, 1);
 }this.vwr.toCartesian (pt1, false);
 this.vwr.toCartesian (pt2, false);
 this.vwr.toCartesian (pt3, false);
-var plane =  new JU.V3 ();
-var w = JU.Measure.getNormalThroughPoints (pt1, pt2, pt3, plane, vAB, vAC);
-var pt4 =  new JU.P4 ();
-pt4.set4 (plane.x, plane.y, plane.z, w);
-return pt4;
+return JU.Measure.getPlaneThroughPoints (pt1, pt2, pt3,  new JU.V3 (),  new JU.V3 (),  new JU.P4 ());
 }, "JU.P3");
 Clazz.defineMethod (c$, "getPointOrPlane", 
 function (index, integerOnly, allowFractional, doConvert, implicitFractional, minDim, maxDim) {
@@ -436,7 +436,7 @@ return (this.theToken.value).floatValue ();
 return 0;
 }, "~N");
 Clazz.defineMethod (c$, "getPointArray", 
-function (i, nPoints) {
+function (i, nPoints, allowNull) {
 var points = (nPoints < 0 ? null :  new Array (nPoints));
 var vp = (nPoints < 0 ?  new JU.Lst () : null);
 var tok = (i < 0 ? 7 : this.getToken (i++).tok);
@@ -446,7 +446,7 @@ var v = (this.theToken).getList ();
 if (nPoints >= 0 && v.size () != nPoints) this.invArg ();
 nPoints = v.size ();
 if (points == null) points =  new Array (nPoints);
-for (var j = 0; j < nPoints; j++) if ((points[j] = JS.SV.ptValue (v.get (j))) == null) this.invArg ();
+for (var j = 0; j < nPoints; j++) if ((points[j] = JS.SV.ptValue (v.get (j))) == null && !allowNull) this.invArg ();
 
 return points;
 case 1073742195:
@@ -479,11 +479,10 @@ if (tok != 269484097) this.invArg ();
 if (points == null) points = vp.toArray ( new Array (vp.size ()));
 if (nPoints > 0 && points[nPoints - 1] == null) this.invArg ();
 return points;
-}, "~N,~N");
+}, "~N,~N,~B");
 Clazz.defineMethod (c$, "listParameter", 
 function (i, nMin, nMax) {
 var v =  new JU.Lst ();
-var pt;
 var tok = this.tokAt (i);
 if (tok == 1073742195) tok = this.tokAt (++i);
 var haveBrace = (tok == 1048586);
@@ -497,15 +496,7 @@ switch (tok) {
 case 269484080:
 case 1048586:
 case 1048590:
-break;
 case 4:
-break;
-case 8:
-pt = this.getPoint3f (i, false);
-v.addLast (Float.$valueOf (pt.x));
-v.addLast (Float.$valueOf (pt.y));
-v.addLast (Float.$valueOf (pt.z));
-n += 3;
 break;
 case 9:
 var pt4 = this.getPoint4f (i);
@@ -516,11 +507,18 @@ v.addLast (Float.$valueOf (pt4.w));
 n += 4;
 break;
 default:
-v.addLast (Float.$valueOf (this.floatParameter (i)));
+if (this.isCenterParameter (i)) {
+var pt = this.centerParameter (i);
+i = this.iToken;
+v.addLast (Float.$valueOf (pt.x));
+v.addLast (Float.$valueOf (pt.y));
+v.addLast (Float.$valueOf (pt.z));
+n += 3;
+break;
+}v.addLast (Float.$valueOf (this.floatParameter (i)));
 n++;
-if (n == nMax && haveSquare && this.tokAt (i + 1) == 1048590) i++;
 }
-i++;
+i += (n == nMax && haveSquare && this.tokAt (i + 1) == 1048590 ? 2 : 1);
 }
 if (haveBrace && this.tokAt (i++) != 1048590 || haveSquare && this.tokAt (i++) != 269484097 || n < nMin || n > nMax) this.invArg ();
 this.iToken = i - 1;

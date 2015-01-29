@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JM.FF");
-Clazz.load (["JM.FF.ForceField"], "JM.FF.ForceFieldMMFF", ["java.lang.Float", "java.util.Hashtable", "JU.AU", "$.BS", "$.Lst", "$.PT", "JM.MinAtom", "$.MinObject", "JM.FF.AtomType", "$.CalculationsMMFF", "JU.BSUtil", "$.Elements", "$.Escape", "$.Logger"], function () {
+Clazz.load (["JM.FF.ForceField"], "JM.FF.ForceFieldMMFF", ["java.lang.Float", "java.util.Hashtable", "JU.AU", "$.BS", "$.Lst", "$.PT", "JM.MinAtom", "$.MinObject", "JM.FF.AtomType", "$.CalculationsMMFF", "JU.BSUtil", "$.Elements", "$.Escape", "$.Logger", "JV.JmolAsyncException"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.useEmpiricalRules = true;
 this.rawAtomTypes = null;
@@ -71,17 +71,25 @@ if ((dataType = JM.FF.ForceFieldMMFF.types[Clazz.doubleToInt ("END.BCI.CHG.ANG.N
 this.readParams (br, dataType, data);
 }
 br.close ();
-} catch (e) {
-if (Clazz.exceptionOf (e, Exception)) {
+} catch (e$$) {
+if (Clazz.exceptionOf (e$$, JV.JmolAsyncException)) {
+var e = e$$;
+{
+throw  new JV.JmolAsyncException (e.getFileName ());
+}
+} else if (Clazz.exceptionOf (e$$, Exception)) {
+var e = e$$;
+{
 System.err.println ("Exception " + e.toString () + " in getResource " + resourceName + " line=" + line);
+}
 } else {
-throw e;
+throw e$$;
 }
 } finally {
 try {
 br.close ();
 } catch (e) {
-if (Clazz.exceptionOf (e, java.io.IOException)) {
+if (Clazz.exceptionOf (e, Exception)) {
 } else {
 throw e;
 }
@@ -243,11 +251,19 @@ types.addLast (at =  new JM.FF.AtomType (elemNo, mmType, hType, formalCharge, va
 JM.FF.ForceFieldMMFF.setFlags (at);
 }
 br.close ();
-} catch (e) {
-if (Clazz.exceptionOf (e, Exception)) {
+} catch (e$$) {
+if (Clazz.exceptionOf (e$$, JV.JmolAsyncException)) {
+var e = e$$;
+{
+throw  new JV.JmolAsyncException (e.getFileName ());
+}
+} else if (Clazz.exceptionOf (e$$, Exception)) {
+var e = e$$;
+{
 System.err.println ("Exception " + e.toString () + " in getResource " + resourceName + " line=" + this.line);
+}
 } else {
-throw e;
+throw e$$;
 }
 }
 JU.Logger.info ((types.size () - 1) + " SMARTS-based atom types read");
@@ -387,8 +403,8 @@ for (var i = bsAtoms.nextSetBit (0); i >= 0; i = bsAtoms.nextSetBit (i + 1)) par
 
 var a1 = null;
 for (var i = bTypes.length; --i >= 0; ) {
-a1 = bonds[i].getAtom1 ();
-var a2 = bonds[i].getAtom2 ();
+a1 = bonds[i].atom1;
+var a2 = bonds[i].atom2;
 var ok1 = bsAtoms.get (a1.i);
 var ok2 = bsAtoms.get (a2.i);
 if (!ok1 && !ok2) continue;
@@ -471,7 +487,7 @@ var bsHydrogen =  new JU.BS ();
 var bsConnected = JU.BSUtil.copy (bsAtoms);
 for (var i = bsAtoms.nextSetBit (0); i >= 0; i = bsAtoms.nextSetBit (i + 1)) {
 var a = atoms[i];
-var bonds = a.getBonds ();
+var bonds = a.bonds;
 if (bonds != null) for (var j = bonds.length; --j >= 0; ) if (bonds[j].isCovalent ()) bsConnected.set (bonds[j].getOtherAtom (a).i);
 
 }
@@ -512,7 +528,7 @@ for (var i = bs.nextSetBit (0); i >= 0; i = bs.nextSetBit (i + 1)) types[i] = j;
 bsDone.or (bs);
 }
 for (var i = bsHydrogen.nextSetBit (0); i >= 0; i = bsHydrogen.nextSetBit (i + 1)) {
-var bonds = atoms[i].getBonds ();
+var bonds = atoms[i].bonds;
 if (bonds != null) {
 var j = types[bonds[0].getOtherAtom (atoms[i]).i];
 if (j != 0) bsDone.set (i);
@@ -527,8 +543,8 @@ Clazz.defineMethod (c$, "setBondTypes",
  function (bonds, bondCount, bsAtoms) {
 var bTypes =  Clazz.newIntArray (bondCount, 0);
 for (var i = bondCount; --i >= 0; ) {
-var a1 = bonds[i].getAtom1 ();
-var a2 = bonds[i].getAtom2 ();
+var a1 = bonds[i].atom1;
+var a2 = bonds[i].atom2;
 var ok1 = bsAtoms.get (a1.i);
 var ok2 = bsAtoms.get (a2.i);
 if (!ok1 && !ok2) continue;

@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JM");
-Clazz.load (null, "JM.LabelToken", ["java.lang.Character", "$.Float", "java.util.Hashtable", "JU.PT", "$.SB", "JM.Atom", "JS.T"], function () {
+Clazz.load (null, "JM.LabelToken", ["java.lang.Float", "java.util.Hashtable", "JU.Lst", "$.PT", "$.SB", "$.T3", "JS.SV", "$.T", "JU.Edge"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.text = null;
 this.key = null;
@@ -84,8 +84,8 @@ return htValues;
 c$.formatLabelBond = Clazz.defineMethod (c$, "formatLabelBond", 
 function (vwr, bond, tokens, values, indices, ptTemp) {
 values.put ("#", "" + (bond.index + 1));
-values.put ("ORDER", "" + bond.getOrderNumberAsString ());
-values.put ("TYPE", bond.getOrderName ());
+values.put ("ORDER", "" + JU.Edge.getBondOrderNumberFromOrder (bond.order));
+values.put ("TYPE", JU.Edge.getBondOrderNameFromOrder (bond.order));
 values.put ("LENGTH", Float.$valueOf (bond.atom1.distance (bond.atom2)));
 values.put ("ENERGY", Float.$valueOf (bond.getEnergy ()));
 JM.LabelToken.setValues (tokens, values);
@@ -140,7 +140,7 @@ lt.alignLeft = true;
 }if (ich < cch && strFormat.charAt (ich) == '0') {
 lt.zeroPad = true;
 ++ich;
-}while (ich < cch && Character.isDigit (ch = strFormat.charAt (ich))) {
+}while (ich < cch && JU.PT.isDigit (ch = strFormat.charAt (ich))) {
 lt.width = (10 * lt.width) + (ch.charCodeAt (0) - 48);
 ++ich;
 }
@@ -151,7 +151,7 @@ if (ich < cch && strFormat.charAt (ich) == '.') {
 if (ich < cch && (ch = strFormat.charAt (ich)) == '-') {
 isNegative = true;
 ++ich;
-}if (ich < cch && Character.isDigit (ch = strFormat.charAt (ich))) {
+}if (ich < cch && JU.PT.isDigit (ch = strFormat.charAt (ich))) {
 lt.precision = ch.charCodeAt (0) - 48;
 if (isNegative) lt.precision = -1 - lt.precision;
 ++ich;
@@ -168,9 +168,11 @@ ich = cch;
 break;
 }var propertyName = strFormat.substring (ich, ichClose).toLowerCase ();
 if (propertyName.startsWith ("property_")) {
-lt.text = propertyName;
 lt.tok = 135270408;
-lt.data = vwr.getDataFloat (lt.text);
+lt.data = vwr.getDataFloat (propertyName);
+} else if (propertyName.startsWith ("validation.")) {
+lt.tok = 1073742189;
+lt.data = vwr.getDataFloat ("property_" + propertyName.substring (11));
 } else {
 var token = JS.T.getTokenFromName (propertyName);
 if (token != null && JM.LabelToken.isLabelPropertyTok (token.tok)) lt.tok = token.tok;
@@ -181,16 +183,20 @@ var ichCloseBracket = strFormat.indexOf ('}', ich);
 if (ichCloseBracket < ich) {
 ich = cch;
 break;
-}lt.text = strFormat.substring (ich, ichCloseBracket);
-lt.data = vwr.getDataFloat (lt.text);
+}var s = strFormat.substring (ich, ichCloseBracket);
+lt.data = vwr.getDataFloat (s);
 if (lt.data == null) {
-lt.data = vwr.getData (lt.text);
+lt.data = vwr.getData (s);
 if (Clazz.instanceOf (lt.data, Array)) {
 lt.data = (lt.data)[1];
 if (Clazz.instanceOf (lt.data, String)) lt.data = JU.PT.split (lt.data, "\n");
 if (!(JU.PT.isAS (lt.data))) lt.data = null;
-}lt.tok = (lt.data == null ? 4 : 135266306);
+}if (lt.data == null) {
+lt.tok = 1716520985;
+lt.data = s;
 } else {
+lt.tok = 135266306;
+}} else {
 lt.tok = 135270408;
 }ich = ichCloseBracket + 1;
 break;
@@ -200,11 +206,11 @@ var i1;
 if (ich < cch && (i = "fuv".indexOf (ch)) >= 0 && (i1 = "xyz".indexOf (strFormat.charAt (ich))) >= 0) {
 lt.tok = JM.LabelToken.twoCharLabelTokenIds[i * 3 + i1];
 ich++;
-} else if ((i = "AaBbCcDEefGgIiLlMmNnoPpQqRrSsTtUuVvWXxxYyyZzz%%%gqW".indexOf (ch)) >= 0) {
+} else if ((i = "AaBbCcDEefGgIiLlMmNnOoPpQqRrSsTtUuVvWXxxYyyZzz%%%gqW".indexOf (ch)) >= 0) {
 lt.tok = JM.LabelToken.labelTokenIds[i];
 }}
 lt.text = strFormat.substring (lt.pt, ich);
-if (ich < cch && chAtom != 0 && Character.isDigit (ch = strFormat.charAt (ich))) {
+if (ich < cch && chAtom != 0 && JU.PT.isDigit (ch = strFormat.charAt (ich))) {
 ich++;
 lt.ch1 = ch;
 if (ch.charCodeAt (0) != chAtom && chAtom != 1) lt.tok = 0;
@@ -221,11 +227,46 @@ case 1095761923:
 strT = "" + (indices == null ? atom.i : indices[atom.i]);
 break;
 case 1766856708:
-ptT = JM.Atom.atomPropertyTuple (atom, t.tok, ptTemp);
+ptT = atom.atomPropertyTuple (vwr, t.tok, ptTemp);
 break;
 case 135270408:
+case 1073742189:
 if (t.data != null) {
 floatT = (t.data)[atom.i];
+if (t.tok == 1073742189 && floatT != 1 && floatT != 0) {
+var o = vwr.getAtomValidation (t.text.substring (13, t.text.length - 1), atom);
+if (o == null) {
+System.out.println ("?? o is null ??");
+} else if (o.size () == 1) {
+floatT = o.get (0).floatValue ();
+} else {
+floatT = NaN;
+strT = "";
+for (var i = 0, n = o.size (); i < n; i++) {
+strT += "," + o.get (i);
+}
+if (strT.length > 1) strT = strT.substring (1);
+}}}break;
+case 1716520985:
+var data = vwr.ms.getInfo (atom.mi, t.data);
+var iatom = atom.i - vwr.ms.am[atom.mi].firstAtomIndex;
+var o = null;
+if (iatom >= 0) if ((Clazz.instanceOf (data, Array))) {
+var sdata = data;
+o = (iatom < sdata.length ? sdata[iatom] : null);
+} else if (Clazz.instanceOf (data, JU.Lst)) {
+var list = data;
+o = (iatom < list.size () ? JS.SV.oValue (list.get (iatom)) : null);
+}if (o == null) {
+strT = "";
+} else if (Clazz.instanceOf (o, Float)) {
+floatT = (o).floatValue ();
+} else if (Clazz.instanceOf (o, Integer)) {
+floatT = (o).intValue ();
+} else if (Clazz.instanceOf (o, JU.T3)) {
+ptT = o;
+} else {
+strT = o.toString ();
 }break;
 case 135266306:
 if (t.data != null) {
@@ -234,45 +275,52 @@ strT = (atom.i < sdata.length ? sdata[atom.i] : "");
 }break;
 case 1632634891:
 var formalCharge = atom.getFormalCharge ();
-if (formalCharge > 0) strT = "" + formalCharge + "+";
- else if (formalCharge < 0) strT = "" + -formalCharge + "-";
- else strT = "";
+strT = (formalCharge > 0 ? "" + formalCharge + "+" : formalCharge < 0 ? "" + -formalCharge + "-" : "");
 break;
 case 'g':
-strT = "" + atom.getSelectedGroupIndexWithinChain ();
+strT = "" + atom.getSelectedGroupIndex ();
 break;
 case 1095766030:
 strT = atom.getModelNumberForLabel ();
 break;
+case 'O':
+strT = atom.getSymmetryOperatorList (false);
+break;
 case 1129318401:
-strT = "" + JM.Atom.atomPropertyInt (atom, t.tok);
+strT = "" + atom.atomPropertyInt (t.tok);
 break;
 case 'Q':
 floatT = atom.getOccupancy100 () / 100;
 break;
 case 1666189314:
-floatT = JM.Atom.atomPropertyFloat (vwr, atom, t.tok, ptTemp);
+floatT = atom.atomPropertyFloat (vwr, t.tok, ptTemp);
 break;
 case 'r':
-strT = atom.getSeqcodeString ();
+strT = atom.group.getSeqcodeString ();
 break;
 case 1087373324:
-strT = atom.getStructureId ();
+strT = atom.group.getStructureId ();
 break;
-case 1095761941:
-var id = atom.getStrucNo ();
+case 1095761942:
+var id = atom.group.getStrucNo ();
 strT = (id <= 0 ? "" : "" + id);
 break;
 case 1112539150:
-floatT = atom.getGroupParameter (1112539150);
-if (Float.isNaN (floatT)) strT = "null";
+if (Float.isNaN (floatT = atom.group.getGroupParameter (1112539150))) strT = "null";
 break;
-case 4:
-strT = vwr.ms.getAtomProp (atom, t.text.substring (2, t.text.length - 1));
+case 1112541202:
+case 1112541203:
+case 1112541204:
+case 1112539159:
+case 1112539160:
+case 1112539161:
+case 1112539162:
+floatT = atom.atomPropertyFloat (vwr, t.tok, ptTemp);
+if (Float.isNaN (floatT)) strT = "";
 break;
 case 1641025539:
 case 1238369286:
-strT = JM.Atom.atomPropertyString (vwr, atom, t.tok);
+strT = atom.atomPropertyString (vwr, t.tok);
 break;
 case 'W':
 strT = atom.getIdentityXYZ (false, ptTemp);
@@ -280,17 +328,18 @@ break;
 default:
 switch (t.tok & 1137704960) {
 case 1095761920:
-if (t.intAsFloat) floatT = JM.Atom.atomPropertyInt (atom, t.tok);
- else strT = "" + JM.Atom.atomPropertyInt (atom, t.tok);
+if (t.intAsFloat) floatT = atom.atomPropertyInt (t.tok);
+ else strT = "" + atom.atomPropertyInt (t.tok);
 break;
 case 1112539136:
-floatT = JM.Atom.atomPropertyFloat (vwr, atom, t.tok, ptTemp);
+floatT = atom.atomPropertyFloat (vwr, t.tok, ptTemp);
 break;
 case 1087373312:
-strT = JM.Atom.atomPropertyString (vwr, atom, t.tok);
+strT = atom.atomPropertyString (vwr, t.tok);
 break;
 case 1078984704:
-ptT = JM.Atom.atomPropertyTuple (atom, t.tok, ptTemp);
+ptT = atom.atomPropertyTuple (vwr, t.tok, ptTemp);
+if (ptT == null) strT = "";
 break;
 default:
 }
@@ -323,8 +372,8 @@ this.precision = 2;
 return this.text;
 }}, "~N,~S,JU.T3");
 Clazz.defineStatics (c$,
-"labelTokenParams", "AaBbCcDEefGgIiLlMmNnoPpQqRrSsTtUuVvWXxxYyyZzz%%%gqW",
-"labelTokenIds", [1087373315, 1087375362, 1087375361, 1112541199, 1632634891, 1087373316, 1095761923, 1087373322, 1087375365, 1112539145, 1095761933, 'g', 1112541195, 1095763969, 1095761938, 1095763978, 1095766030, 1087373319, 1095761936, 1087373318, 1089470478, 1112541196, 1112539146, 'Q', 1129318401, 1095761939, 'r', 1095761940, 1087373316, 1112539150, 1112541199, 1087373321, 1112539151, 1649412120, 1146095631, 'W', 1112541188, 1112541185, 1112541205, 1112541189, 1112541186, 1112541206, 1112541190, 1112541187, 1112541207, 1115297793, 1113200642, 1113198595, 1113198596, 1113198597, 1113200646, 1113200647, 1113200649, 1113200650, 1113200652, 1650071565, 1113200654, 1112539137, 1112539138, 1095761922, 1095761924, 1766856708, 1095761932, 1112539140, 1229984263, 1288701959, 1826248716, 1112539143, 1095761935, 1112539141, 1112539144, 1095761937, 1716520985, 1666189314, 1114638363, 1087373323, 1087373320, 1113200651, 1641025539, 1238369286, 1095761941, 1087373324, 1087375373, 1112539152, 1112539153, 1112539154, 1112539155, 1095763990, 1649410049, 1112541202, 1112541203, 1112541204, 1313866249, 1146093582, 1146095627, 1146095626, 1146095629, 1112541191, 1112541192, 1112541193, 1114638362, 1112539147, 1112539148, 1112539149, 1146095628, 1112539142, 1112539139, 1095761927],
+"labelTokenParams", "AaBbCcDEefGgIiLlMmNnOoPpQqRrSsTtUuVvWXxxYyyZzz%%%gqW",
+"labelTokenIds", [1087373315, 1087375362, 1087375361, 1112541196, 1632634891, 1087373316, 1095761923, 1087373322, 1087375365, 1112539145, 1095761933, 'g', 1112541194, 1095763969, 1095761938, 1095763978, 1095766030, 1087373319, 1095761936, 1087373318, 'O', 1089470478, 1112541195, 1112539146, 'Q', 1129318401, 1095763987, 'r', 1095761941, 1087373316, 1112539150, 1112541196, 1087373321, 1112539151, 1649412120, 1146095631, 'W', 1112541188, 1112541185, 1112541205, 1112541189, 1112541186, 1112541206, 1112541190, 1112541187, 1112541207, 1115297793, 1113200642, 1113198595, 1113198596, 1113198597, 1113200646, 1113200647, 1113200649, 1113200650, 1113200652, 1650071565, 1113200654, 1112539137, 1112539138, 1095761922, 1095761924, 1766856708, 1095761932, 1112539140, 1229984263, 1288701959, 1826248716, 1112539143, 1095761935, 1112539141, 1112539144, 1095761937, 1716520985, 1666189314, 1114638363, 1087373323, 1087373320, 1113200651, 1641025539, 1238369286, 1095761942, 1087373324, 1087375373, 1112539152, 1112539153, 1112539154, 1112539155, 1095763991, 1649410049, 1112541202, 1112541203, 1112541204, 1313866249, 1146093582, 1146095627, 1146095626, 1146095629, 1112541191, 1112541192, 1112541193, 1114638362, 1112539147, 1112539148, 1112539149, 1146095628, 1112539142, 1112539139, 1095761927, 1095761940, 1112539159, 1112539160, 1112539161, 1112539162, 1146093584, 1297090050],
 "STANDARD_LABEL", "%[identify]",
 "twoCharLabelTokenParams", "fuv",
 "twoCharLabelTokenIds", [1112541188, 1112541189, 1112541190, 1112539153, 1112539154, 1112539155, 1112541202, 1112541203, 1112541204]);

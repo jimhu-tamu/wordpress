@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JS");
-Clazz.load (["javajs.api.JSONEncodable", "JS.T", "JU.P3"], "JS.SV", ["java.lang.Boolean", "$.Float", "java.util.Arrays", "$.Collections", "$.Hashtable", "$.Map", "JU.AU", "$.BArray", "$.BS", "$.Base64", "$.Lst", "$.M3", "$.M34", "$.M4", "$.P4", "$.PT", "$.Quat", "$.SB", "$.T3", "$.V3", "JM.BondSet", "JS.ScriptContext", "JU.BSUtil", "$.Escape", "$.Measure", "$.Txt"], function () {
+Clazz.load (["javajs.api.JSONEncodable", "JS.T", "JU.P3"], "JS.SV", ["java.lang.Boolean", "$.Float", "java.util.Arrays", "$.Collections", "$.Hashtable", "$.Map", "JU.AU", "$.BArray", "$.BS", "$.Base64", "$.Lst", "$.M3", "$.M34", "$.M4", "$.Measure", "$.P4", "$.PT", "$.Quat", "$.SB", "$.T3", "$.V3", "JM.BondSet", "JS.ScriptContext", "JU.BSUtil", "$.Escape"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.index = 2147483647;
 this.flags = 2;
@@ -275,8 +275,10 @@ function () {
 return JS.SV.sValue (this);
 });
 c$.oValue = Clazz.defineMethod (c$, "oValue", 
-function (x) {
-switch (x == null ? 0 : x.tok) {
+function (xx) {
+if (!(Clazz.instanceOf (xx, JS.SV))) return xx;
+var x = xx;
+switch (x.tok) {
 case 1048589:
 return Boolean.TRUE;
 case 0:
@@ -290,7 +292,7 @@ return JS.SV.selectItemVar (x).value;
 default:
 return x.value;
 }
-}, "JS.SV");
+}, "~O");
 c$.nValue = Clazz.defineMethod (c$, "nValue", 
 function (x) {
 var iValue;
@@ -422,8 +424,8 @@ case 6:
 case 14:
 if (Clazz.instanceOf (x.value, String)) return x.value;
 sb =  new JU.SB ();
-JS.SV.sValueArray (sb, x, "", "", false, true);
-return sb.toString ();
+JS.SV.sValueArray (sb, x, "", "", false, true, true, 2147483647, false);
+return JU.PT.rep (sb.toString (), "\n\0", " ");
 case 4:
 var s = x.value;
 i = x.intValue;
@@ -443,37 +445,40 @@ return x.value.toString ();
 }
 }, "JS.T");
 c$.sValueArray = Clazz.defineMethod (c$, "sValueArray", 
- function (sb, vx, path, tabs, isEscaped, isRaw) {
+ function (sb, vx, path, tabs, isEscaped, isRaw, addValues, maxLevels, skipEmpty) {
 switch (vx.tok) {
 case 6:
 case 14:
 case 7:
 var thiskey = ";" + vx.hashCode () + ";";
 if (path.indexOf (thiskey) >= 0) {
-sb.append (isEscaped ? "{}" : vx.myName == null ? "<circular reference>" : "<" + vx.myName + ">");
+sb.append (isEscaped ? "{}" : vx.myName == null ? "\0\"<circular reference>\"" : "<" + vx.myName + ">");
 break;
 }path += thiskey;
 if (vx.tok == 7) {
+if (!addValues) return;
 if (!isRaw) sb.append (isEscaped ? "[ " : tabs + "[\n");
 var sx = vx.getList ();
 for (var i = 0; i < sx.size (); i++) {
 if (isEscaped && i > 0) sb.append (",");
 var sv = sx.get (i);
-JS.SV.sValueArray (sb, sv, path, tabs + "\t", isEscaped, tabs.length == 0 && !isEscaped && JS.SV.isRawType (sv.tok));
+JS.SV.sValueArray (sb, sv, path, tabs + "  ", isEscaped, tabs.length == 0 && !isEscaped && JS.SV.isRawType (sv.tok), addValues, maxLevels, skipEmpty);
 if (!isEscaped) sb.append ("\n");
 }
 if (!isRaw) sb.append (isEscaped ? " ]" : tabs + "]");
-} else {
+} else if (--maxLevels >= 0) {
 var ht = (vx.tok == 14 ? (vx.value).getFullMap () : vx.getMap ());
-JS.SV.addKeys (sb, path, ht, tabs, isEscaped);
+JS.SV.addKeys (sb, path, ht, tabs, isEscaped, addValues, maxLevels, skipEmpty);
 }break;
 default:
+if (!addValues) return;
 if (!isRaw && !isEscaped) sb.append (tabs);
 sb.append (isEscaped ? vx.escape () : JS.SV.sValue (vx));
 }
-}, "JU.SB,JS.SV,~S,~S,~B,~B");
+}, "JU.SB,JS.SV,~S,~S,~B,~B,~B,~N,~B");
 c$.addKeys = Clazz.defineMethod (c$, "addKeys", 
- function (sb, path, ht, tabs, isEscaped) {
+ function (sb, path, ht, tabs, isEscaped, addValues, maxLevels, skipEmpty) {
+if (maxLevels < 0) return;
 var keyset = ht.keySet ();
 var keys = ht.keySet ().toArray ( new Array (keyset.size ()));
 java.util.Arrays.sort (keys);
@@ -482,29 +487,33 @@ sb.append ("{ ");
 var sep = "";
 for (var i = 0; i < keys.length; i++) {
 var key = keys[i];
-sb.append (sep).append (JU.PT.esc (key)).appendC (':');
-JS.SV.sValueArray (sb, ht.get (key), path, tabs + "\t", true, false);
+var val = ht.get (key);
+if (skipEmpty && val.tok == 7 && val.getList ().size () == 0 || val.tok == 6 && val.getMap ().isEmpty ()) continue;
+if (addValues) sb.append (sep).append (JU.PT.esc (key)).append (":");
+ else sb.appendC (' ').append (key);
+JS.SV.sValueArray (sb, val, path, tabs + "  ", true, false, addValues, maxLevels, skipEmpty);
 sep = ",";
 }
 sb.append (" }");
+if (!addValues) sb.append ("\n");
 return;
 }sb.append (tabs).append ("{\n");
-tabs += "\t";
+tabs += "  ";
 for (var i = 0; i < keys.length; i++) {
 sb.append (tabs);
 var key = keys[i];
-sb.append (key).append ("\t:");
+sb.append (key).append ("  :");
 var sb2 =  new JU.SB ();
 var v = ht.get (key);
 isEscaped = JS.SV.isRawType (v.tok);
-JS.SV.sValueArray (sb2, v, path, tabs, isEscaped, false);
+JS.SV.sValueArray (sb2, v, path, tabs, isEscaped, false, addValues, maxLevels, skipEmpty);
 var value = sb2.toString ();
-if (isEscaped) sb.append ("\t");
+if (isEscaped && addValues) sb.append ("  ");
  else sb.append ("\n");
 sb.append (value).append ("\n");
 }
 sb.append (tabs.substring (1)).append ("}");
-}, "JU.SB,~S,java.util.Map,~S,~B");
+}, "JU.SB,~S,java.util.Map,~S,~B,~B,~N,~B");
 c$.isRawType = Clazz.defineMethod (c$, "isRawType", 
  function (tok) {
 switch (tok) {
@@ -613,7 +622,7 @@ var tokenOut = JS.SV.newSV (tokenIn.tok, 2147483647, null);
 switch (tokenIn.tok) {
 case 10:
 if (Clazz.instanceOf (tokenIn.value, JM.BondSet)) {
-bs =  new JM.BondSet (tokenIn.value, (tokenIn.value).getAssociatedAtoms ());
+bs = JM.BondSet.newBS (tokenIn.value, (tokenIn.value).associatedAtoms);
 len = JU.BSUtil.cardinalityOf (bs);
 } else {
 bs = JU.BSUtil.copy (tokenIn.value);
@@ -775,7 +784,7 @@ case 7:
 case 6:
 case 14:
 var sb =  new JU.SB ();
-JS.SV.sValueArray (sb, this, "", "", true, false);
+JS.SV.sValueArray (sb, this, "", "", true, false, true, 2147483647, false);
 return sb.toString ();
 default:
 return JS.SV.sValue (this);
@@ -810,7 +819,7 @@ if (v == null) v = JU.Escape.uABsM (s);
 if (Clazz.instanceOf (v, JU.P3)) return (JS.SV.newV (8, v));
 if (Clazz.instanceOf (v, JU.P4)) return JS.SV.newV (9, v);
 if (Clazz.instanceOf (v, JU.BS)) {
-if (s != null && s.indexOf ("[{") == 0) v =  new JM.BondSet (v);
+if (s != null && s.indexOf ("[{") == 0) v = JM.BondSet.newBS (v, null);
 return JS.SV.newV (10, v);
 }if (Clazz.instanceOf (v, JU.M34)) return (JS.SV.newV (Clazz.instanceOf (v, JU.M3) ? 11 : 12, v));
 return o;
@@ -845,7 +854,7 @@ if (ve != null) ve[0] = JS.SV.fValue ($var);
 if (getS) of[3] = JS.SV.sValue ($var);
 if (getP) of[4] = $var.value;
 if (getQ) of[5] = $var.value;
-return JU.Txt.sprintf (strFormat, "IFDspq", of);
+return JU.PT.sprintf (strFormat, "IFDspq", of);
 }, "~S,JS.SV,~A,~A,~A,~A,~B,~B,~B");
 c$.getFormatType = Clazz.defineMethod (c$, "getFormatType", 
 function (format) {
@@ -897,7 +906,7 @@ var sb =  new JU.SB ();
 var format = JU.PT.split (JU.PT.rep (JS.SV.sValue (args[0]), "%%", "\1"), "%");
 sb.append (format[0]);
 for (var i = 1; i < format.length; i++) {
-var ret = JS.SV.sprintf (JU.Txt.formatCheck ("%" + format[i]), (i < args.length ? args[i] : null));
+var ret = JS.SV.sprintf (JU.PT.formatCheck ("%" + format[i]), (i < args.length ? args[i] : null));
 if (JU.PT.isAS (ret)) {
 var list = ret;
 for (var j = 0; j < list.length; j++) sb.append (list[j]).append ("\n");
@@ -1084,6 +1093,10 @@ default:
 return JU.PT.toJSON (null, this.value);
 }
 });
+Clazz.defineMethod (c$, "mapGet", 
+function (key) {
+return this.getMap ().get (key);
+}, "~S");
 Clazz.defineMethod (c$, "mapPut", 
 function (key, v) {
 this.getMap ().put (key, v);
@@ -1098,6 +1111,13 @@ return (this.value).vars;
 }
 return null;
 });
+Clazz.defineMethod (c$, "getMapKeys", 
+function (nLevels, skipEmpty) {
+if (this.tok != 6) return "";
+var sb =  new JU.SB ();
+JS.SV.sValueArray (sb, this, "", "", true, false, false, nLevels + 1, skipEmpty);
+return sb.toString ();
+}, "~N,~B");
 Clazz.overrideMethod (c$, "toString", 
 function () {
 return this.toString2 () + "[" + this.myName + " index =" + this.index + " intValue=" + this.intValue + "]";

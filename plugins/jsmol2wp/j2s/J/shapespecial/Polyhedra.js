@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.shapespecial");
-Clazz.load (["J.shape.AtomShape", "JU.P3", "$.V3"], "J.shapespecial.Polyhedra", ["java.lang.Boolean", "JU.AU", "$.BS", "$.P3i", "$.SB", "J.c.PAL", "J.shapespecial.Polyhedron", "JU.Logger", "$.Measure", "$.Normix"], function () {
+Clazz.load (["J.shape.AtomShape", "JU.P3", "$.V3"], "J.shapespecial.Polyhedra", ["java.lang.Boolean", "JU.AU", "$.BS", "$.Measure", "$.P3i", "$.SB", "J.c.PAL", "J.shapespecial.Polyhedron", "JU.Logger", "$.Normix"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.otherAtoms = null;
 this.polyhedronCount = 0;
@@ -22,7 +22,6 @@ this.bsTemp = null;
 this.align1 = null;
 this.align2 = null;
 this.vAB = null;
-this.vAC = null;
 Clazz.instantialize (this, arguments);
 }, J.shapespecial, "Polyhedra", J.shape.AtomShape);
 Clazz.prepareFields (c$, function () {
@@ -33,7 +32,6 @@ this.planesT =  Clazz.newByteArray (450, 0);
 this.align1 =  new JU.V3 ();
 this.align2 =  new JU.V3 ();
 this.vAB =  new JU.V3 ();
-this.vAC =  new JU.V3 ();
 });
 Clazz.overrideMethod (c$, "setProperty", 
 function (propertyName, value, bs) {
@@ -182,14 +180,14 @@ iter.release ();
 Clazz.defineMethod (c$, "constructBondsPolyhedron", 
  function (atomIndex) {
 var atom = this.atoms[atomIndex];
-var bonds = atom.getBonds ();
+var bonds = atom.bonds;
 if (bonds == null) return null;
 var bondCount = 0;
 for (var i = bonds.length; --i >= 0; ) {
 var bond = bonds[i];
-var otherAtom = bond.getAtom1 () === atom ? bond.getAtom2 () : bond.getAtom1 ();
+var otherAtom = bond.atom1 === atom ? bond.atom2 : bond.atom1;
 if (this.bsVertices != null && !this.bsVertices.get (otherAtom.i)) continue;
-if (this.radius > 0 && bond.getAtom1 ().distance (bond.getAtom2 ()) > this.radius) continue;
+if (this.radius > 0 && bond.atom1.distance (bond.atom2) > this.radius) continue;
 this.otherAtoms[bondCount++] = otherAtom;
 if (bondCount == 150) break;
 }
@@ -211,7 +209,7 @@ this.vwr.setIteratorForAtom (iter, atomIndex, this.radius);
 while (iter.hasNext ()) {
 var other = this.atoms[iter.next ()];
 if (this.bsVertices != null && !this.bsVertices.get (other.i) || atom.distance (other) > this.radius) continue;
-if (other.getAlternateLocationID () != atom.getAlternateLocationID () && (other.getAlternateLocationID ()).charCodeAt (0) != 0 && (atom.getAlternateLocationID ()).charCodeAt (0) != 0) continue;
+if (other.altloc != atom.altloc && other.altloc.charCodeAt (0) != 0 && atom.altloc.charCodeAt (0) != 0) continue;
 if (otherAtomCount == 150) break;
 this.otherAtoms[otherAtomCount++] = other;
 }
@@ -345,22 +343,23 @@ return (angle < 0.01 || angle > 3.13);
 Clazz.defineMethod (c$, "isPlanar", 
  function (pt1, pt2, pt3, ptX) {
 var norm =  new JU.V3 ();
-var w = JU.Measure.getNormalThroughPoints (pt1, pt2, pt3, norm, this.vAB, this.vAC);
+var w = JU.Measure.getNormalThroughPoints (pt1, pt2, pt3, norm, this.vAB);
 var d = JU.Measure.distanceToPlaneV (norm, w, ptX);
 return (Math.abs (d) < J.shapespecial.Polyhedra.minDistanceForPlanarity);
 }, "JU.P3,JU.P3,JU.P3,JU.P3");
-Clazz.overrideMethod (c$, "setVisibilityFlags", 
+Clazz.overrideMethod (c$, "setModelVisibilityFlags", 
 function (bsModels) {
 for (var i = this.polyhedronCount; --i >= 0; ) {
 var p = this.polyhedrons[i];
-p.visibilityFlags = (p.visible && bsModels.get (p.modelIndex) && !this.ms.isAtomHidden (p.centralAtom.i) ? this.vf : 0);
+if (this.ms.at[p.centralAtom.i].isDeleted ()) p.isValid = false;
+p.visibilityFlags = (p.visible && bsModels.get (p.modelIndex) && !this.ms.isAtomHidden (p.centralAtom.i) && !this.ms.at[p.centralAtom.i].isDeleted () ? this.vf : 0);
 }
 }, "JU.BS");
 Clazz.overrideMethod (c$, "getShapeState", 
 function () {
 if (this.polyhedronCount == 0) return "";
 var s =  new JU.SB ();
-for (var i = 0; i < this.polyhedronCount; i++) s.append (this.polyhedrons[i].getState ());
+for (var i = 0; i < this.polyhedronCount; i++) if (this.polyhedrons[i].isValid) s.append (this.polyhedrons[i].getState ());
 
 if (this.drawEdges == 2) J.shape.Shape.appendCmd (s, "polyhedra frontedges");
  else if (this.drawEdges == 1) J.shape.Shape.appendCmd (s, "polyhedra edges");

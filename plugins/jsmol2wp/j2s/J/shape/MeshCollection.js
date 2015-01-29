@@ -1,5 +1,5 @@
 Clazz.declarePackage ("J.shape");
-Clazz.load (["J.shape.Shape"], "J.shape.MeshCollection", ["java.util.Hashtable", "JU.AU", "$.Lst", "$.P3", "$.PT", "$.SB", "JS.T", "J.shape.Mesh", "JU.C", "$.Escape", "$.Logger", "$.Txt", "JV.StateManager"], function () {
+Clazz.load (["J.shape.Shape"], "J.shape.MeshCollection", ["java.util.Hashtable", "JU.AU", "$.Lst", "$.P3", "$.PT", "$.SB", "JS.T", "J.shape.Mesh", "JU.C", "$.Escape", "$.Logger", "JV.StateManager"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.meshCount = 0;
 this.meshes = null;
@@ -32,7 +32,7 @@ this.meshes =  new Array (4);
 Clazz.defineMethod (c$, "setMesh", 
  function (thisID) {
 this.linkedMesh = null;
-if (thisID == null || JU.Txt.isWild (thisID)) {
+if (thisID == null || JU.PT.isWild (thisID)) {
 if (thisID != null) this.previousMeshID = thisID;
 this.currentMesh = null;
 return null;
@@ -52,7 +52,7 @@ Clazz.defineMethod (c$, "allocMesh",
 function (thisID, m) {
 var index = this.meshCount++;
 this.meshes = JU.AU.ensureLength (this.meshes, this.meshCount * 2);
-this.currentMesh = this.meshes[index] = (m == null ?  new J.shape.Mesh ().mesh1 (thisID, this.colix, index) : m);
+this.currentMesh = this.meshes[index] = (m == null ?  new J.shape.Mesh ().mesh1 (this.vwr, thisID, this.colix, index) : m);
 this.currentMesh.color = this.color;
 this.currentMesh.index = index;
 if (thisID != null && this.htObjects != null) this.htObjects.put (thisID.toUpperCase (), this.currentMesh);
@@ -217,7 +217,7 @@ if (this.explicitID) this.previousMeshID = id;
 Clazz.defineMethod (c$, "setTokenProperty", 
 function (tokProp, bProp, testD) {
 if (this.currentMesh == null) {
-var key = (this.explicitID && JU.Txt.isWild (this.previousMeshID) ? this.previousMeshID : null);
+var key = (this.explicitID && JU.PT.isWild (this.previousMeshID) ? this.previousMeshID : null);
 var list = this.getMeshList (key, false);
 for (var i = list.size (); --i >= 0; ) this.setMeshTokenProperty (list.get (i), tokProp, bProp, testD);
 
@@ -242,7 +242,6 @@ return;
 case 603979967:
 m.setTranslucent (bProp, this.translucentLevel);
 if (bProp && m.bsSlabGhost != null) m.resetSlab ();
-if (m.bsTransPolygons != null) m.resetTransPolygons ();
 return;
 default:
 m.setTokenProperty (tokProp, bProp);
@@ -282,9 +281,9 @@ Clazz.defineMethod (c$, "getMeshList",
 function (key, justOne) {
 var list =  new JU.Lst ();
 if (key != null) key = (key.length == 0 ? null : key.toUpperCase ());
-var isWild = JU.Txt.isWild (key);
+var isWild = JU.PT.isWild (key);
 var id;
-for (var i = this.meshCount; --i >= 0; ) if (key == null || (id = this.meshes[i].thisID.toUpperCase ()).equals (key) || isWild && JU.Txt.isMatch (id, key, true, true)) {
+for (var i = this.meshCount; --i >= 0; ) if (key == null || (id = this.meshes[i].thisID.toUpperCase ()).equals (key) || isWild && JU.PT.isMatch (id, key, true, true)) {
 list.addLast (this.meshes[i]);
 if (justOne) break;
 }
@@ -340,7 +339,7 @@ for (var i = this.meshCount; --i >= 0; ) if (this.meshes[i] == null || this.mesh
 Clazz.defineMethod (c$, "deleteMesh", 
  function () {
 if (this.explicitID && this.currentMesh != null) this.deleteMeshI (this.currentMesh.index);
- else this.deleteMeshKey (this.explicitID && this.previousMeshID != null && JU.Txt.isWild (this.previousMeshID) ? this.previousMeshID : null);
+ else this.deleteMeshKey (this.explicitID && this.previousMeshID != null && JU.PT.isWild (this.previousMeshID) ? this.previousMeshID : null);
 this.currentMesh = null;
 });
 Clazz.defineMethod (c$, "deleteMeshKey", 
@@ -372,7 +371,7 @@ return (i < 0 ? null : this.meshes[i]);
 Clazz.overrideMethod (c$, "getIndexFromName", 
 function (id) {
 if ("+PREVIOUS_MESH+".equals (id)) return (this.previousMeshID == null ? this.meshCount - 1 : this.getIndexFromName (this.previousMeshID));
-if (JU.Txt.isWild (id)) {
+if (JU.PT.isWild (id)) {
 var list = this.getMeshList (id, true);
 return (list.size () == 0 ? -1 : list.get (0).index);
 }if (this.htObjects != null) {
@@ -383,9 +382,9 @@ if (this.meshes[i] != null && this.meshes[i].vc != 0 && id.equalsIgnoreCase (thi
 }
 return -1;
 }, "~S");
-Clazz.overrideMethod (c$, "setVisibilityFlags", 
+Clazz.overrideMethod (c$, "setModelVisibilityFlags", 
 function (bsModels) {
-var bsDeleted = this.vwr.getDeletedAtoms ();
+var bsDeleted = this.vwr.slm.bsDeleted;
 for (var i = this.meshCount; --i >= 0; ) {
 var mesh = this.meshes[i];
 mesh.visibilityFlags = (mesh.visible && mesh.isValid && (mesh.modelIndex < 0 || bsModels.get (mesh.modelIndex) && (mesh.atomIndex < 0 || !this.ms.isAtomHidden (mesh.atomIndex) && !(bsDeleted != null && bsDeleted.get (mesh.atomIndex)))) ? this.vf : 0);

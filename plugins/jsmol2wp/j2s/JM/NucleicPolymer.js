@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JM");
-Clazz.load (["JM.PhosphorusPolymer"], "JM.NucleicPolymer", ["JU.P4", "$.V3", "JM.HBond", "JU.Measure"], function () {
+Clazz.load (["JM.PhosphorusPolymer"], "JM.NucleicPolymer", ["JU.Measure", "$.P4", "$.V3", "JM.HBond"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.isDssrSet = false;
 Clazz.instantialize (this, arguments);
@@ -41,7 +41,6 @@ function (polymer, bsA, bsB, vAtoms, nMaxPerResidue, min, checkDistances, dsspIg
 var other = polymer;
 var vNorm =  new JU.V3 ();
 var vAB =  new JU.V3 ();
-var vAC =  new JU.V3 ();
 for (var i = this.monomerCount; --i >= 0; ) {
 var myNucleotide = this.monomers[i];
 if (!myNucleotide.isPurine ()) continue;
@@ -50,8 +49,7 @@ var isInA = bsA.get (myN3.i);
 if (!isInA && !bsB.get (myN3.i)) continue;
 var myN1 = myNucleotide.getN1 ();
 var myN9 = myNucleotide.getN0 ();
-var plane =  new JU.P4 ();
-JU.Measure.getPlaneThroughPoints (myN3, myN1, myN9, vNorm, vAB, vAC, plane);
+var plane = JU.Measure.getPlaneThroughPoints (myN3, myN1, myN9, vNorm, vAB,  new JU.P4 ());
 var bestN3 = null;
 var minDist2 = 25;
 var bestNucleotide = null;

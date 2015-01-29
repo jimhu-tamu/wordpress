@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JU");
-Clazz.load (["J.api.JmolAppletInterface", "$.JmolStatusListener", "java.util.Hashtable"], "JU.GenericApplet", ["java.lang.Boolean", "java.net.URL", "javajs.awt.Dimension", "JU.Lst", "$.PT", "$.SB", "J.c.CBK", "J.i18n.GT", "JU.Logger", "JV.JC", "$.Viewer"], function () {
+Clazz.load (["J.api.JmolAppletInterface", "$.JmolStatusListener"], "JU.GenericApplet", ["java.lang.Boolean", "java.net.URL", "java.util.Hashtable", "javajs.awt.Dimension", "JU.Lst", "$.PT", "$.SB", "J.c.CBK", "J.i18n.GT", "JU.Logger", "JV.JC", "$.Viewer"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.isJS = false;
 this.codeBase = null;
@@ -27,13 +27,12 @@ this.syncId = null;
 this.outputBuffer = null;
 Clazz.instantialize (this, arguments);
 }, JU, "GenericApplet", null, [J.api.JmolAppletInterface, J.api.JmolStatusListener]);
-Clazz.prepareFields (c$, function () {
-this.b$ =  new java.util.Hashtable ();
-});
 Clazz.defineMethod (c$, "init", 
 function (applet) {
+this.b$ =  new java.util.Hashtable ();
+if (JU.GenericApplet.htRegistry == null) JU.GenericApplet.htRegistry =  new java.util.Hashtable ();
 this.appletObject = applet;
-this.htmlName = this.getJmolParameter ("name");
+this.htmlName = JU.PT.split ("" + this.getJmolParameter ("name"), "_object")[0];
 this.syncId = this.getJmolParameter ("syncId");
 this.fullName = this.htmlName + "__" + this.syncId + "__";
 System.out.println ("Jmol JavaScript applet " + this.fullName + " initializing");
@@ -83,7 +82,7 @@ if ((loadParam = this.getValue ("load", null)) != null) script = "load \"" + loa
 loadParam = null;
 }this.viewer.popHoldRepaint ("applet init");
 if (loadParam != null && this.viewer.loadInline (loadParam) != null) script = "";
-if (script.length > 0) this.scriptProcessor (script, null, 2);
+if (script.length > 0) this.scriptProcessor (script, null, 1);
 this.viewer.notifyStatusReady (true);
 });
 Clazz.overrideMethod (c$, "destroy", 
@@ -271,6 +270,8 @@ this.notifyCallback (J.c.CBK.ECHO, ["", message]);
 Clazz.overrideMethod (c$, "notifyEnabled", 
 function (type) {
 switch (type) {
+case J.c.CBK.SERVICE:
+return false;
 case J.c.CBK.ECHO:
 case J.c.CBK.MESSAGE:
 case J.c.CBK.MEASURE:
@@ -278,6 +279,7 @@ case J.c.CBK.PICK:
 case J.c.CBK.SYNC:
 return true;
 case J.c.CBK.ANIMFRAME:
+case J.c.CBK.DRAGDROP:
 case J.c.CBK.ERROR:
 case J.c.CBK.EVAL:
 case J.c.CBK.LOADSTRUCT:
@@ -309,7 +311,9 @@ case J.c.CBK.ERROR:
 case J.c.CBK.EVAL:
 case J.c.CBK.HOVER:
 case J.c.CBK.MINIMIZATION:
+case J.c.CBK.SERVICE:
 case J.c.CBK.RESIZE:
+case J.c.CBK.DRAGDROP:
 break;
 case J.c.CBK.CLICK:
 if ("alert".equals (callback)) strInfo = "x=" + data[1] + " y=" + data[2] + " action=" + data[3] + " clickCount=" + data[4];
@@ -531,8 +535,8 @@ if (!JU.GenericApplet.htRegistry.containsKey (appletName)) appletName = "jmolApp
 if (!appletName.equals (excludeName) && JU.GenericApplet.htRegistry.containsKey (appletName)) {
 apps.addLast (appletName);
 }}, "~S,~S,~S,JU.Lst");
-c$.htRegistry = c$.prototype.htRegistry =  new java.util.Hashtable ();
 Clazz.defineStatics (c$,
+"htRegistry", null,
 "SCRIPT_CHECK", 0,
 "SCRIPT_WAIT", 1,
 "SCRIPT_NOWAIT", 2);

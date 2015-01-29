@@ -41,7 +41,7 @@ if (mat == null) return;
 var m =  new JU.M4 ();
 m.setToM3 (mat);
 this.matrixFractionalToCartesian.mul2 (m, this.matrixFractionalToCartesian);
-this.matrixCartesianToFractional.invertM (this.matrixFractionalToCartesian);
+this.matrixCartesianToFractional.setM4 (this.matrixFractionalToCartesian).invert ();
 this.initUnitcellVertices ();
 }, "JU.M3");
 Clazz.defineMethod (c$, "toUnitCell", 
@@ -157,8 +157,8 @@ function () {
 return this.fractionalOffset;
 });
 Clazz.defineMethod (c$, "getTensor", 
-function (parBorU) {
-var t = (J.api.Interface.getUtil ("Tensor"));
+function (vwr, parBorU) {
+var t = (J.api.Interface.getUtil ("Tensor", vwr, "file"));
 if (parBorU[0] == 0 && parBorU[1] == 0 && parBorU[2] == 0) {
 var f = parBorU[7];
 var eigenValues = [f, f, f];
@@ -192,7 +192,7 @@ Bcart[3] = 2 * this.b * this.b * this.cosGamma * this.sinGamma * B22 + 2 * this.
 Bcart[4] = 2 * this.c * this.c * this.cB_ * this.cosBeta * B33 + this.b * this.c * this.cosGamma * B23 + this.a * this.c * this.cB_ * B13;
 Bcart[5] = 2 * this.c * this.c * this.cA_ * this.cB_ * B33 + this.b * this.c * this.cB_ * this.sinGamma * B23;
 }return t.setFromThermalEquation (Bcart, JU.Escape.eAF (parBorU));
-}, "~A");
+}, "JV.Viewer,~A");
 Clazz.defineMethod (c$, "getCanonicalCopy", 
 function (scale, withOffset) {
 var pts =  new Array (8);
@@ -226,10 +226,8 @@ if (this.matrixFractionalToCartesian == null) return;
 this.matrixCtoFANoOffset = JU.M4.newM4 (this.matrixCartesianToFractional);
 this.matrixFtoCNoOffset = JU.M4.newM4 (this.matrixFractionalToCartesian);
 this.vertices =  new Array (8);
-for (var i = 8; --i >= 0; ) {
-this.vertices[i] =  new JU.P3 ();
-this.matrixFractionalToCartesian.rotTrans2 (JU.BoxInfo.unitCubePoints[i], this.vertices[i]);
-}
+for (var i = 8; --i >= 0; ) this.vertices[i] = this.matrixFractionalToCartesian.rotTrans2 (JU.BoxInfo.unitCubePoints[i],  new JU.P3 ());
+
 });
 Clazz.defineMethod (c$, "checkDistance", 
 function (f1, f2, distance, dx, iRange, jRange, kRange, ptOffset) {
@@ -280,9 +278,9 @@ return s;
 });
 Clazz.defineMethod (c$, "getQuaternionRotation", 
 function (abc) {
-var a = this.vertices[4];
-var b = this.vertices[2];
-var c = this.vertices[1];
+var a = JU.V3.newVsub (this.vertices[4], this.vertices[0]);
+var b = JU.V3.newVsub (this.vertices[2], this.vertices[0]);
+var c = JU.V3.newVsub (this.vertices[1], this.vertices[0]);
 var x =  new JU.V3 ();
 var v =  new JU.V3 ();
 switch ("abc".indexOf (abc)) {

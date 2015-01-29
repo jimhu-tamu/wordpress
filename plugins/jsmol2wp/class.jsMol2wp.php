@@ -84,6 +84,7 @@ class jsMol2wp{
 	
 	function makeScriptButtons($commands, $template, $wrap = 4){
 		$buttons = '';
+		$customButtons = '';
 		$jmolCommandInput = '';
 		$notButtons = 0;
 		$applet = $this->appletID;
@@ -100,6 +101,8 @@ class jsMol2wp{
 						# if label is not set, we assume the user wants Jmol script not
 						# wrapped in a button
 						$buttons .= "Jmol.script($applet,\"$script\");\n";
+						# if it's the first one, append to the load for the reset script
+						if($i == 0) $this->load .= $script;
 						$notButtons++;
 						break;
 					case 'jmolCommandInput':
@@ -108,13 +111,17 @@ class jsMol2wp{
 						$notButtons++;
 						break;	
 					default:
-						$buttons .= "jmolButton('$script','$label')\n";
+						$customButtons .= "jmolButton('$script','$label')\n";
 				}				
-				$j = $i+2-$notButtons;
-				if($j%$wrap == 0) $buttons .= "jmolBr()\n";
+				$j = $i-$notButtons;
+				if($j%$wrap == 0 && $j != 0) $customButtons .= "jmolBr();\n";
 			}
 		}
-		$buttons .= "jmolButton('reset;select all;$this->load','reset')\n";	
+		if(strpos($this->load, 'isosurface') > 0){
+			$buttons .= 'jmolButton("if(surfaceflag == false);isosurface on;surfaceflag = true;else;isosurface off;surfaceflag = false;endif","isosurface");';
+		}
+		$buttons .= "jmolButton('reset;select all;$this->load','reset')\njmolBr();\n";	
+		$buttons .= $customButtons;
 		$buttons .= $this->standardButtons($wrap).$jmolCommandInput;
 		$template = str_replace('__commands__',$buttons, $template );	
 		return $template;
@@ -152,7 +159,7 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
 		}
 
 		foreach($stdButtons as $i => $button){
-			if($i%$wrap == 0) $str .= "jmolBr();\n";
+			if($i%$wrap == 0 && $i != 0) $str .= "jmolBr();\n";
 			$str .= $button;
 		}
 		return $str;
@@ -223,16 +230,19 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
 	}
 	
 	static function getAttachmentPost($filename){
+		$attachment = null;
 		$args = array('post_type' => 'attachment', 'posts_per_page'=>-1, 'post_status' => 'any', 'post_parent' => null);
 		$media = get_posts( $args );
 		foreach($media as $p){
 			$attFileName = basename($p->guid);
 			if($filename == $attFileName){
-				return $p;
+				$attachment = $p;
+				break;
 			}	
 		}
+		wp_reset_postdata();
 		# if the above fails, check for a case where the extension was not given in type
-		$attachment = get_page_by_title($filename, OBJECT, 'attachment' );
+		if(is_null($attachment)) $attachment = get_page_by_title($filename, OBJECT, 'attachment' );
 		return $attachment;
 	}
 		

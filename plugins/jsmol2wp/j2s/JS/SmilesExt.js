@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JS");
-Clazz.load (["JS.JmolSmilesExtension"], "JS.SmilesExt", ["java.lang.Float", "JU.AU", "$.BS", "$.Lst", "$.M4", "$.P3", "JU.Escape", "$.Logger", "$.Measure"], function () {
+Clazz.load (["JS.JmolSmilesExtension"], "JS.SmilesExt", ["java.lang.Float", "JU.AU", "$.BS", "$.Lst", "$.M4", "$.Measure", "$.P3", "J.api.Interface", "JM.BondSet", "JU.BSUtil", "$.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.e = null;
 this.sm = null;
@@ -24,7 +24,7 @@ ptsB =  new JU.Lst ();
 }var m =  new JU.M4 ();
 var c =  new JU.P3 ();
 var atoms = this.e.vwr.ms.at;
-var ac = this.e.vwr.getAtomCount ();
+var ac = this.e.vwr.ms.ac;
 var maps = this.sm.getCorrelationMaps (smiles, atoms, ac, bsA, isSmarts, true);
 if (maps == null) this.e.evalError (this.sm.getLastException (), null);
 if (maps.length == 0) return NaN;
@@ -42,7 +42,8 @@ for (var i = 0; i < maps.length; i++) {
 ptsB.clear ();
 for (var j = 0; j < maps[i].length; j++) ptsB.addLast (atoms[maps[i][j]]);
 
-var stddev = JU.Measure.getTransformMatrix4 (ptsA, ptsB, m, c, false);
+J.api.Interface.getInterface ("JU.Eigen", this.e.vwr, "script");
+var stddev = JU.Measure.getTransformMatrix4 (ptsA, ptsB, m, c);
 JU.Logger.info ("getSmilesCorrelation stddev=" + stddev);
 if (vReturn != null) {
 if (stddev < tolerance) {
@@ -93,7 +94,7 @@ var b;
 if (bsMatch3D == null) {
 asAtoms = (smiles == null);
 try {
-if (asAtoms) b = this.sm.getSubstructureSetArray (pattern, this.e.vwr.ms.at, this.e.vwr.getAtomCount (), bsSelected, null, isSmarts, false);
+if (asAtoms) b = this.sm.getSubstructureSetArray (pattern, this.e.vwr.ms.at, this.e.vwr.ms.ac, bsSelected, null, isSmarts, false);
  else b = this.sm.find (pattern, smiles, isSmarts, false);
 } catch (ex) {
 if (Clazz.exceptionOf (ex, Exception)) {
@@ -122,18 +123,20 @@ var pt = 0;
 for (var i = bs.nextSetBit (0); i >= 0; i = bs.nextSetBit (i + 1)) iarray[pt++] = i + 1;
 
 return iarray;
-}var matches =  new Array (b.length);
-for (var j = 0; j < b.length; j++) matches[j] = (asAtoms ? JU.Escape.eBS (b[j]) : JU.Escape.eBond (b[j]));
+}if (!asAtoms) for (var j = 0; j < b.length; j++) b[j] = JU.BSUtil.copy2 (b[j],  new JM.BondSet ());
 
-return matches;
+var list =  new JU.Lst ();
+for (var j = 0; j < b.length; j++) list.addLast (b[j]);
+
+return list;
 }, "~S,~S,JU.BS,JU.BS,~B,~B");
 Clazz.overrideMethod (c$, "getFlexFitList", 
 function (bs1, bs2, smiles1, isSmarts) {
 var mapSet = JU.AU.newInt2 (2);
 this.getSmilesCorrelation (bs1, bs2, smiles1, null, null, null, null, isSmarts, false, mapSet, null, false, false);
 if (mapSet[0] == null) return null;
-var bondMap1 = this.e.vwr.getDihedralMap (mapSet[0]);
-var bondMap2 = (bondMap1 == null ? null : this.e.vwr.getDihedralMap (mapSet[1]));
+var bondMap1 = this.e.vwr.ms.getDihedralMap (mapSet[0]);
+var bondMap2 = (bondMap1 == null ? null : this.e.vwr.ms.getDihedralMap (mapSet[1]));
 if (bondMap2 == null || bondMap2.length != bondMap1.length) return null;
 var angles =  Clazz.newFloatArray (bondMap1.length, 3, 0);
 var atoms = this.e.vwr.ms.at;
