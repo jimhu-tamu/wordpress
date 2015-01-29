@@ -1,4 +1,4 @@
-=== JSmol for Wordpress ===
+=== JSmol2WP ===
 Contributors: Jim Hu
 Tags: shortcodes, JSmol, Jmol, molecular graphics, PDB
 Requires at least: 3.0
@@ -8,7 +8,7 @@ Stable tag: none
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Plugin to place JSmol molecular graphics applets in Wordpress posts or pages. Also known as jsmol2wp.
+Plugin to place JSmol molecular graphics applets in Wordpress posts or pages. 
 
 == Description ==
 This shortcode plugin places JSmol applets in WordPress posts and pages.
