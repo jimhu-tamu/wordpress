@@ -28,7 +28,7 @@ Installation is typical for Wordpress plugins not yet in the Wordpress ecosystem
 <h4>Proteins remotely from the pdb</h4>
 <pre>[jsmol pdb='<em>accession</em>']</pre><p> is equivalent to</p> <pre>[jsmol acc='<em>accession</em>' type='pdb']</pre>
 <h4>Small molecules remotely from NCI and from PubChem</h4>
-<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'assets/jsmol-1.png' width=300px><p>Figure 1. Screenshot of JSmol2wp viewer for a small molecule</p></div>
+<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'images/jsmol-1.png' width=300px><p>Figure 1. Screenshot of JSmol2wp viewer for a small molecule</p></div>
 <p>Jmol can look up small molecules by name at the NCI resolver (<a href="http://cactus.nci.nih.gov/chemical/structure">http://cactus.nci.nih.gov/chemical/structure</a>). Use</p>
 
 <pre>[jsmol acc = $<em>name</em>]</pre>
@@ -83,7 +83,7 @@ JSmol2wp can also work with files that are uploaded to your media library. JSmol
 	<li>full: dumps the jsmol2wp object and runs other tests.</li>
 </ul>
 <h3>Additional parameters</h3>
-<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'assets/jsmol-2.png' width=300px><p>Figure 2. Screenshot of JSmol2wp viewer for a with an isosurface loaded from a local file</p></div>
+<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'images/jsmol-2.png' width=300px><p>Figure 2. Screenshot of JSmol2wp viewer for a with an isosurface loaded from a local file</p></div>
 <p>JSmol2wp can take additional optional parameters:</p>
 <ul>
 	<li>acc: accession. Use as an alternative to pdb=, and use this for accessions that are not pdb files.</li>
@@ -106,7 +106,7 @@ isosurface='http://localhost/tmp/s_den.cub_.jvxl']
 <h3>Basic</h3>
 <pre>[jsmol pdb='1LMB' caption='lambda repressor headpiece']</pre>
 <h3>Advanced</h3>
-<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'assets/jsmol-3.png' width=300px><p>Figure 2. Screenshot of JSmol2wp viewer for a protein, with custom command/script execution buttons</p></div>
+<div style='float:right;width:300px;border-style:solid;border-width:1px;padding:5px;font-size:small;'><img src = 'images/jsmol-3.png' width=300px><p>Figure 2. Screenshot of JSmol2wp viewer for a protein, with custom command/script execution buttons</p></div>
 <p>Figure 3 is a  screenshot of the sample viewer in this example post <a href="http://biochemistry.tamu.edu/jsmol2wp/">here</a>.  The markup for the lambda repressor example in that post is:</p>
 <pre>[jsmol pdb='1LMB' caption='&amp;lambda; repressor headpiece' 
 commands='

@@ -8,7 +8,7 @@ Stable tag: none
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Plugin to place JSmol molecular graphics applets in Wordpress posts or pages. 
+Plugin to place JSmol molecular graphics applets in Wordpress posts or pages.
 
 == Description ==
 This shortcode plugin places JSmol applets in WordPress posts and pages.
@@ -30,6 +30,8 @@ This plugin also benefited from using Jaime Prilusky's mediawiki extension for i
 http://proteopedia.org/support/JSmolExtension/
 
 == Development notes ==
+1.01
+* tweaks for wordpress.org deposition
 1.0
 * update JSmol code to 14.3.12_2015.01.28
 * prepare for release to wordpress.org plugin repository
