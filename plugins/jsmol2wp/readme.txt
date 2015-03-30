@@ -29,7 +29,7 @@ http://wiki.jmol.org/index.php/Jmol_JavaScript_Object
 This plugin also benefited from using Jaime Prilusky's mediawiki extension for inspiration
 http://proteopedia.org/support/JSmolExtension/
 == Upgrade Notice ==
-Version 1.02 makes minor changes and is mostly to fix problems on the display of information at wordpress.org.
+Version 1.03 updates the Jmol libraries and fixes a bug with the load parameter
 == Frequently Asked Questions ==
 = Is there an example of an installation? =
 See http://jimhu.org/jsmol2wp-plugin-released-at-wordpress-org/

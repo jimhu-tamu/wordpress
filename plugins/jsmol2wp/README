@@ -30,6 +30,14 @@ This plugin also benefited from using Jaime Prilusky's mediawiki extension for i
 http://proteopedia.org/support/JSmolExtension/
 
 == Development notes ==
+1.03
+* updated jsmol package from Jmol sourceforge
+* Remove beta from help.htm
+* fix bug where load param was not working
+1.02
+* fixes to this readme.txt file to improve the display at the wordpress.org plugin repository
+1.01
+* tweaks for wordpress.org deposition
 1.0
 * update JSmol code to 14.3.12_2015.01.28
 * prepare for release to wordpress.org plugin repository
