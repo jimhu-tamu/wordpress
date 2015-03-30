@@ -170,56 +170,60 @@ jmolButton("spacefill 23%;wireframe 0.15","ball&stick");'
 	function getTemplate($load){
 		$template = file_get_contents(dirname(__FILE__).'/jsmol_template.htm');
 		# if load is set, it is used and we don't guess
-		if($load != '') $loadStr = $load;
+		if($load != ''){ 
+			$loadStr = $load;
+		}else{	
 		# otherwise try to guess the right load string
-		$loadStr = '';
-		if($this->load != ''){ 
-			$loadStr = $this->load; 
-		}else{
-			if($this->acc != '' && ($this->acc{0} == '$'||$this->acc{0} == ':')){
-				$loadStr = "load $this->acc;spacefill 23%;wireframe 0.15;color cpk;spin off;";
-				$this->type = 'mol';	
+			$loadStr = '';
+			if($this->load != ''){ 
+				$loadStr = $this->load; 
+			}else{
+				if($this->acc != '' && ($this->acc{0} == '$'||$this->acc{0} == ':')){
+					$loadStr = "load $this->acc;spacefill 23%;wireframe 0.15;color cpk;spin off;";
+					$this->type = 'mol';	
+				}
+				# if the type is pdb, look for it at rcsb.org
+				if($this->type == 'pdb'){
+					$loadStr = "load \"http://www.rcsb.org/pdb/files/$this->acc.pdb\";";			
+				}
+				# if there is a local file, override the guessed remote load and if needed, guess the type
+				if($this->fileURL != ''){
+					$this->type = pathinfo($this->fileURL, PATHINFO_EXTENSION);
+					$loadStr = "load $this->fileURL;";
+				}
+				# add the default format
+				switch ($this->type){
+					case 'obj':
+						#this is going to only be with a fileURL?
+						$loadStr = str_replace(
+							"load",
+							"isosurface OBJ ", 
+							$loadStr);
+						$loadStr .= " spacefill 23%;wireframe 0.15;color cpk;spin off;";
+						break;
+					case 'xyz':
+					case 'mol':
+					case 'mol2':
+						#change the default load coloring and display
+						$loadStr .= ' spacefill 23%;wireframe 0.15;color cpk;spin off;';
+						break;
+					case 'mrc':
+						return "Support for binary type: $this->type is not implemented yet";
+						break;
+					case 'pdb':
+						$loadStr .= ' spacefill off;wireframe off;cartoons on;color structure;spin off;';
+						break;
+					default:
+				}
 			}
-			# if the type is pdb, look for it at rcsb.org
-			if($this->type == 'pdb'){
-				$loadStr = "load \"http://www.rcsb.org/pdb/files/$this->acc.pdb\";";			
-			}
-			# if there is a local file, override the guessed remote load and if needed, guess the type
-			if($this->fileURL != ''){
-				$this->type = pathinfo($this->fileURL, PATHINFO_EXTENSION);
-				$loadStr = "load $this->fileURL;";
-			}
-			# add the default format
-			switch ($this->type){
-				case 'obj':
-					#this is going to only be with a fileURL?
-					$loadStr = str_replace(
-						"load",
-						"isosurface OBJ ", 
-						$loadStr);
-					$loadStr .= " spacefill 23%;wireframe 0.15;color cpk;spin off;";
-					break;
-				case 'xyz':
-				case 'mol':
-				case 'mol2':
-					#change the default load coloring and display
-					$loadStr .= ' spacefill 23%;wireframe 0.15;color cpk;spin off;';
-					break;
-				case 'mrc':
-					return "Support for binary type: $this->type is not implemented yet";
-					break;
-				case 'pdb':
-					$loadStr .= ' spacefill off;wireframe off;cartoons on;color structure;spin off;';
-					break;
-				default:
-			}
-		}
+		}	
 		# add isosurface if it's present
 		if($this->isosurface != ''){
 			$loadStr .= " isosurface $this->isosurface;";
 		}
 		# add the acc label
 		if($this->acc != '') $loadStr .= "set echo top center; echo ".ltrim($this->acc,'$:').';';
+
 		$template = str_replace('__load__', $loadStr, $template);
 		# save the loadstr for use by the reset button
 		$this->load = $loadStr;
