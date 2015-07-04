@@ -15,7 +15,14 @@ Text Domain: tiny-child-biology
 /* Site colors
 Maroon for icon-font: #500000
 Maroon for blockquote: #500000
-Orange for widget titles and hover link state: #500000
+Maroon for widget titles and hover link state: #500000
 
 Body text color: #222
 */
+
+/* 9.1 General widget styles */
+.widget-title {
+	font-size: 14px;
+	color:#500000;
+
+}
