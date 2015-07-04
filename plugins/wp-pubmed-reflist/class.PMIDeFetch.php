@@ -26,6 +26,7 @@ class PMIDeFetch{
 		$authors = array();
 		$tags = array('LastName', 'Initials', 'Suffix', 'CollectiveName');
 		if(is_object($this->article())){
+			if(is_object($this->article()->AuthorList->Author)){
 			foreach($this->article()->AuthorList->Author as $auth){
 				foreach ($tags as $tag){
 					$$tag = '';
@@ -41,6 +42,14 @@ class PMIDeFetch{
 					'CollectiveName' => $CollectiveName,
 					'Cite_name' => $cite_name
 				);
+			}
+			}else{
+				$authors[0] = array(
+						'Last' => 'Anon.',
+						'Initials' => '',
+						'CollectiveName' => '',
+						'Cite_name' => 'Anon.'			
+				); 
 			}
 		}
 		return $authors;
@@ -59,6 +68,9 @@ class PMIDeFetch{
 
 	function volume(){
 		return (string)$this->article()->Journal->JournalIssue->Volume;
+	}
+	function issue(){
+		return (string)$this->article()->Journal->JournalIssue->Issue;
 	}
 
 	function pmid(){
@@ -119,6 +131,21 @@ class PMIDeFetch{
 		}
 		return $arr;
 	}
+	function epub(){
+		$epub = '';
+		#echo "<pre>".print_r($this->pmidObj->PubmedData, true)."</pre>";
+		if(is_object($this->pmidObj->PubmedData->History)){
+			#echo __METHOD__."<br>";
+			foreach($this->pmidObj->PubmedData->History as $pubMedDate){
+				foreach($pubMedDate as $item){
+					if((string)$item->attributes() == 'epublish'){
+						$epub = "Epub ".$item->Year.'/'.$item->Month.'/'.$item->Day;
+					}
+				}
+			}
+		}
+		return $epub;
+	}
 	
 	function citation(){
 		$authorlist = array();
@@ -128,13 +155,16 @@ class PMIDeFetch{
 		return array(
 			'PMID'    	=> $this->pmid(),
 			'Authors' 	=> implode(', ', $authorlist),
+			'AuthorList' => $authorlist,
 			'Year'   	=> $this->year(),
 			'Title'    	=> $this->title(),
 			'Journal'   => $this->journal(),
 			'Volume'   	=> $this->volume(),
+			'Issue'   	=> $this->issue(),
 			'Pages'   	=> $this->pages(),
 			'Abstract' 	=> $this->abstract_text(),
 			'xrefs' 	=> $this->xrefs(),
+			'EPub'    	=> $this->epub()
 		);
 	}
 	

@@ -2,9 +2,9 @@
 Contributors: Jim Hu
 Tags: shortcodes, pubmed, references
 Requires at least: 3.0
-Tested up to: 3.5.1
+Tested up to: 4.1
 Donate link:http://biochemistry.tamu.edu/index.php/alum/giving/
-Stable tag: 0.5
+Stable tag: 0.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,18 @@ n/a
 TODO:
 * input validation for the admin page
 * jquery datatables for settings view
+= 0.8 =
+* Fixed markdown in readme
+* add _TitleL formatting tag for Title with link
+* Fix case sensitive filename bug in 0.7
+= 0.7 =
+* Moved admin menu to go under tools and modified user permissions to allow Editors to edit queries
+* Moved new key from the bottom to the top of the query management form
+* Tabbed admin page for additional settings
+* Users can now customize output formats
+..* set where to truncate author lists and at et al.
+..* set key phrases to italicize (e.g. in vitro or species names)
+* Help tab documents how to use the plugin
 = 0.6 =
 * Changed recursive query syntax to use *key*
 = 0.5 =

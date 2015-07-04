@@ -9,11 +9,16 @@ class wpPubMedRefList{
 	
 	/*
 	key is the key to a particular query, e.g. a faculty name
+	
+	2015-01-25
+	Current caching system is probably inefficient, since it caches the final html. This can be redundant if the same 
+	query is using different formatting options. But that shouldn't happen too often.
+	
 	*/
-	function wp_pubmed_reflist($key, $limit=50,  $linktext, $showlink){
+	function wp_pubmed_reflist($key, $limit=50, $style, $wrap, $linktext, $showlink){
 
 		$debug = false;
-		$html = '';
+		$html =  $msg = '';
 		$this->query = $this->build_recursive_query($key);
 		$this->query = str_replace("\n",' ', $this->query);
 		$this->query = preg_replace('/\s+/','+', $this->query);
@@ -21,27 +26,30 @@ class wpPubMedRefList{
 		$showlink = strtolower($showlink);
 		if($showlink != 'link only'){
 			$msg = "load from cache<br>";
-			if(	$debug || !isset($this->options['facprops'][$key.$limit]['last_update']) ){
+			$cache_key = "$key.$limit.$style.$wrap";
+			if(	$debug || !isset($this->options['facprops'][$cache_key]['last_update']) ){
 				$elapsed = 0;
 			}else{
-				$elapsed = time() - $this->options['facprops'][$key.$limit]['last_update'];
+				$elapsed = time() - $this->options['facprops'][$cache_key]['last_update'];
 			}	
 			if(	$debug 
-				|| !isset($this->options['facprops'][$key.$limit]['reflist']) 
+				|| !isset($this->options['facprops'][$cache_key]['reflist']) 
 				|| $elapsed > 60*60*24 
 				#||true # uncomment for debugging
 				){
 				#do the update
-				$msg = "updating from pubmed last update:".$this->options['facprops'][$key.$limit]['last_update'];
-				$this->options['facprops'][$key.$limit]['reflist'] = $this->reflist_query($key, $limit);
+				$msg = "updating from pubmed last update:".date("Y-m-d H:i:s", @$this->options['facprops'][$cache_key]['last_update']);
+				$query_results = $this->reflist_query($key, $limit);
+				$formatter = new wpPubMedReflistViews();
+				$this->options['facprops'][$cache_key]['reflist'] = $formatter->format_refs($query_results, $style, $wrap, $limit);
 			
 				# update the timestamp array
-				$this->options['facprops'][$key.$limit]['last_update'] = time();
+				$this->options['facprops'][$cache_key]['last_update'] = time();
 
 				# save the ref list to the options table
 				update_option('wp_pubmed_reflist', $this->options);		
 			}
-			$html = $this->options['facprops'][$key.$limit]['reflist'];
+			$html = $this->options['facprops'][$cache_key]['reflist'];
 		}
 		switch($showlink){
 			case 'false':
@@ -55,56 +63,50 @@ class wpPubMedRefList{
 	}
 	
 	/*
+	returns associative array
+	$refs = array(
+		pmid => array of citation objects
+		extras => extra citations
+	)
+	
 	Use negative limit to pick one random reference from a list of abs[$limit]
 	*/
 	function reflist_query($key, $limit){
 		$query = $this->query;
 		if ($query == "($key)") return "please enter a query for $key in the admin panel<br>";
-		$random = false;
-		if ($limit < 0){
-			$limit = abs($limit);
-			$random = true;
-		}
 		
 		# Step 1: Call esearch to get a list of PMIDs
-		$query = str_replace(' ','+',$query)."&dispmax=$limit";
+		$limit = abs($limit);
+		$query = str_replace(' ','+',$query)."&retmax=$limit";
 		$url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=$query";
-		$encoded_url = urlencode($url);
+		$encoded_url = urlencode($url); echo $url;
 		$xml = simplexml_load_file($encoded_url); 
 		# extract PMIDs
 		$id_list = array();
 		foreach ($xml->IdList->Id as $pmid){ 
 			$id_list[] = (string)$pmid;
 		}
-	
 		#Step 2 call efetch to get the actual citations
 		$refs = array();
+		$refs['pmid'] = array();
 		if(!empty($id_list) ){
 			$url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=".implode(',',$id_list)."&retmode=xml";
 			$encoded_url = urlencode($url);
 			$xml = simplexml_load_file($encoded_url); 
+		
 			$i = 0;
+
 			foreach ($xml->PubmedArticle as $article){
 				if($i >= $limit) break;
 				$i++;
 				$p = new PMIDeFetch($article);
 				$citation = $p->citation(); 
-				$refs[] =
-					$citation['Authors'].
-					' ('.$citation['Year'].') '.
-					"<a href='http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=pubmed&amp;dopt=Abstract&amp;list_uids=".$citation['PMID']."'>".$citation['Title']."</a> ".
-					'<i>'.$citation['Journal'].'</i> '.
-					'<b>'.$citation['Volume'].'</b>: '.
-					$citation['Pages'];
-				
-			}
+				$refs['pmid'][] = $citation;
 		}
-		$refs = array_merge($refs, $this->add_extras($key));
-		# if random, pick a random one from the list
-		if($random){
-			$k = rand(0, $limit-1);
-			$refs = array($refs[$k]); 
 		}
+		
+		$refs['extras'] = $this->add_extras($key);
+		return $refs;
 		
 		# make the list
 		$html = "<ol>";
@@ -114,7 +116,7 @@ class wpPubMedRefList{
 	}
 	
 	function add_extras($key){
-		$extras_str = trim($this->options['facprops'][$key]['extras']);
+		$extras_str = trim(@$this->options['facprops'][$key]['extras']);
 		$extras = explode("\n", $extras_str);
 		return array_filter($extras);
 	}
