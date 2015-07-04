@@ -1,0 +1,14 @@
+/*
+Theme Name:	Tiny TAMU
+Theme URI:	http://jimhu.org/
+Description:	Child theme for the Tiny Framework theme with TAMU colors 
+Author:	Jim Hu
+Author URI:	http://txfolders.tamu.edu/about/
+Template:	tiny-framework
+Version:	0.1.0
+*/
+/*@import url("../tiny-framework/style.css");*/
+
+.widget-title{
+	color:#500000;
+}
