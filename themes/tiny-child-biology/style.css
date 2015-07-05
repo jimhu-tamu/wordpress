@@ -20,9 +20,15 @@ Maroon for widget titles and hover link state: #500000
 Body text color: #222
 */
 
+
 /* 9.1 General widget styles */
 .widget-title {
 	font-size: 14px;
 	color:#500000;
 
 }
+
+/* header */
+.site-header{
+	background-color:#500000;
+}		
